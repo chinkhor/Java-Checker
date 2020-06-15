@@ -21,7 +21,8 @@ public class CheckerGUI
 		frame.add(board, BorderLayout.CENTER);
 		
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		frame.setSize(new Dimension(480, 480));
+		//frame.setSize(480, 480);
+		frame.pack(); // use the size specified by the components, and pack them.
 		frame.setVisible(true);
 	}
 
