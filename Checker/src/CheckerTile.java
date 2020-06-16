@@ -1,3 +1,4 @@
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 
@@ -6,7 +7,7 @@ import javax.swing.JPanel;
 @SuppressWarnings("serial")
 public class CheckerTile extends JPanel 
 {
-	private final int TILE_SIZE = 100;
+	public static final int TILE_SIZE = 100;
 	
 	private int row;
 	private int col;
@@ -18,6 +19,7 @@ public class CheckerTile extends JPanel
 		this.col = col;
 		this.setPreferredSize(new Dimension(TILE_SIZE, TILE_SIZE));
 		this.setBackground(color);
+		this.setLayout(new BorderLayout());
 	}
 	
 	public int getRow()

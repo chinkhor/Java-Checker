@@ -1,3 +1,4 @@
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.GridLayout;
 import java.awt.event.MouseEvent;
@@ -9,9 +10,9 @@ import javax.swing.JPanel;
 @SuppressWarnings("serial")
 public class CheckerBoard extends JPanel implements MouseListener
 {
-	private final int TILES = 8;
+	public final static int TILES = 8;
 
-	private CheckerTile tile[][] = new CheckerTile[TILES][TILES];
+	public CheckerTile tile[][] = new CheckerTile[TILES][TILES];
 	
 	public CheckerBoard()
 	{
@@ -29,10 +30,13 @@ public class CheckerBoard extends JPanel implements MouseListener
 				if (count % 2 == 0) 
 				{
 					tile[row][col] = new CheckerTile(row, col, Color.BLACK);
+					
+					// only add MouseListener to black colored playing tiles
 					tile[row][col].addMouseListener(this);			
 				}
 				else
 				{
+					// red colored tiles are not playing tiles
 					tile[row][col] = new CheckerTile(row, col, Color.RED);
 				}
 				this.add(tile[row][col]);
@@ -41,6 +45,12 @@ public class CheckerBoard extends JPanel implements MouseListener
 			}
 			count++;
 		}
+	}
+	
+	public void addPiece(CheckerPiece piece, int row, int col)
+	{		
+		tile[row][col].add(piece, BorderLayout.CENTER);
+		piece.repaint();
 	}
 	
 	public void mouseClicked(MouseEvent e) 
