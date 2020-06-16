@@ -1,7 +1,9 @@
 import java.awt.Color;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 
-public class CheckerPlayer {
+public class CheckerPlayer implements ActionListener {
 
 	private Color playerColor;
 	private CheckerBoard board;
@@ -42,6 +44,9 @@ public class CheckerPlayer {
 				
 				// add piece to player array list
 				pieces.add(piece);
+				
+				// action action listener for button click
+				piece.addActionListener(this);
 			}
 		}
 		showPlayerPieceList();
@@ -59,6 +64,13 @@ public class CheckerPlayer {
 			System.out.print(piece.getLabel() + " ");
 		}
 		System.out.println("");
+	}
+	
+	public void actionPerformed(ActionEvent e)
+	{
+		CheckerPiece piece = (CheckerPiece) e.getSource();
+		
+		System.out.println(piece.getLabel() + " is clicked");
 	}
 }
 
