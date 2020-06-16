@@ -1,5 +1,4 @@
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -11,7 +10,7 @@ import javax.swing.JPanel;
 public class CheckerBoard extends JPanel implements MouseListener
 {
 	private final int TILES = 8;
-	private final int TILE_SIZE = 100;
+
 	private CheckerTile tile[][] = new CheckerTile[TILES][TILES];
 	
 	public CheckerBoard()
@@ -26,18 +25,15 @@ public class CheckerBoard extends JPanel implements MouseListener
 		{
 			for (int col=0; col < TILES; col++)
 			{
-				tile[row][col] = new CheckerTile(row, col);
-				tile[row][col].setPreferredSize(new Dimension(TILE_SIZE, TILE_SIZE));
 				//alternating the color of the tile
 				if (count % 2 == 0) 
 				{
-					tile[row][col].setBackground(Color.BLACK);
-					tile[row][col].addMouseListener(this);
-					
+					tile[row][col] = new CheckerTile(row, col, Color.BLACK);
+					tile[row][col].addMouseListener(this);			
 				}
 				else
 				{
-					tile[row][col].setBackground(Color.RED);
+					tile[row][col] = new CheckerTile(row, col, Color.RED);
 				}
 				this.add(tile[row][col]);
 				
