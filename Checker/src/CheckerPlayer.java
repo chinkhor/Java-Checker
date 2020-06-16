@@ -22,7 +22,7 @@ public class CheckerPlayer implements ActionListener {
 		this.pieces = new ArrayList<CheckerPiece>();
 	
 		// player ORANGE is at bottom of board
-		if (color == Color.ORANGE)
+		if (this.playerColor == Color.ORANGE)
 		{
 			startRow = CheckerBoard.TILES - PLAY_ROWS;
 			endRow = CheckerBoard.TILES;
@@ -39,7 +39,7 @@ public class CheckerPlayer implements ActionListener {
 			for (int col = row %2; col < CheckerBoard.TILES; col+=2)
 			{
 				// create piece and add to the board
-				CheckerPiece piece = new CheckerPiece(row, col, color);
+				CheckerPiece piece = new CheckerPiece(row, col, playerColor);
 				board.addPiece(piece, row, col);
 				
 				// add piece to player array list
