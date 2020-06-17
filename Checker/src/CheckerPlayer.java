@@ -1,4 +1,3 @@
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -8,7 +7,6 @@ import java.util.Timer;
 public class CheckerPlayer implements ActionListener {
 
 	private Color playerColor;
-	private CheckerBoard board;
 	// player array list, store all its pieces
 	private ArrayList<CheckerPiece> pieces; 
 	
@@ -29,12 +27,13 @@ public class CheckerPlayer implements ActionListener {
 	private Timer timer;
 	private CheckerTimerTask task;
 	
+	private int kingRow;
+	
 	public CheckerPlayer(Color color, CheckerBoard board)
 	{
 		int startRow, endRow;
 		
 		this.playerColor = color;
-		this.board = board;
 		this.pieces = new ArrayList<CheckerPiece>();
 		this.preSelectList = new ArrayList<CheckerPiece>();
 		this.state = 0;
@@ -44,12 +43,14 @@ public class CheckerPlayer implements ActionListener {
 		{
 			startRow = CheckerBoard.TILES - PLAY_ROWS;
 			endRow = CheckerBoard.TILES;
+			kingRow = 0;
 		}
 		// player WHITE is at top of board
 		else
 		{
 			startRow = 0;
 			endRow = PLAY_ROWS;
+			kingRow = CheckerBoard.TILES - 1;
 		}
 		for (int row = startRow; row < endRow; row++)
 		{
@@ -246,6 +247,8 @@ public class CheckerPlayer implements ActionListener {
 			piece.setRow(row);
 			piece.setCol(col);
 			piece.setLabel("(" + row + "," + col + ")");
+			if (row == kingRow)
+				piece.setCrown();
 			
 			actionComplete();
 		}
@@ -308,6 +311,9 @@ public class CheckerPlayer implements ActionListener {
 				piece.select(false);
 				piece.setRow(row);
 				piece.setCol(col);
+				piece.setLabel("(" + row + "," + col + ")");
+				if (row == kingRow)
+					piece.setCrown();
 				
 				// remove opponent piece
 				capture(midRow, midCol);
@@ -335,7 +341,6 @@ public class CheckerPlayer implements ActionListener {
 	{
 		CheckerPlayer player = Checker.getPlayer(Checker.getCurrentPlayer());
 		CheckerBoard board = Checker.getBoard();
-		ArrayList<CheckerPiece> pieces = player.getPieceArrayList();
 		ArrayList<CheckerPiece> preSelectList = player.getPreSelectArrayList();
 		
 		// check any piece have capture possibility in next action

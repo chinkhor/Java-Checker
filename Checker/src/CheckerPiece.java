@@ -2,7 +2,11 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Image;
+import java.io.File;
+import java.io.IOException;
 
+import javax.imageio.ImageIO;
 import javax.swing.JButton;
 
 @SuppressWarnings("serial")
@@ -16,7 +20,8 @@ public class CheckerPiece extends JButton
 	private String label;
 	private boolean select;
 	private boolean preSelect;
-	
+	private Image img;	
+	private boolean crowned;
 	
 	public CheckerPiece(int row, int col, Color color)
 	{
@@ -29,6 +34,15 @@ public class CheckerPiece extends JButton
 		this.select = false;
 		this.preSelect = false;
 		this.label = "(" + row + "," + col + ")";
+		this.crowned = false;
+		try 
+		   {
+			   this.img = ImageIO.read(new File("src/crown.png"));
+		   }   catch (IOException e)
+		   {
+			   System.out.println("Couldn't load/find crown.png");
+			   System.exit(0);
+		   }
 	}
 	
 	public void paintComponent(Graphics g)
@@ -46,6 +60,11 @@ public class CheckerPiece extends JButton
 			g2.setStroke(new BasicStroke(3));
 		}
 		g2.drawOval(pieceX, pieceY, pieceSize, pieceSize);
+		
+	    if (crowned)
+	    {
+	    	g2.drawImage(img, pieceX, pieceY, pieceSize, pieceSize,  null);
+	    }  
 	}
 	
 	public int getRow()
@@ -95,12 +114,23 @@ public class CheckerPiece extends JButton
 	
 	public void setPreSelect(boolean s)
 	{
-		preSelect = s;
+		this.preSelect = s;
 	}
 
 	public void select(boolean s)
 	{
-		select = s;
+		this.select = s;
 		repaint();
+	}
+	
+	public void setCrown()
+	{
+		this.crowned = true;
+		repaint();
+	}
+	
+	public boolean getCrown()
+	{
+		return this.crowned;
 	}
 }
