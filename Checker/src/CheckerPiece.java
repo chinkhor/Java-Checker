@@ -13,6 +13,8 @@ public class CheckerPiece extends JButton
 	private int pieceSize = CheckerTile.TILE_SIZE/2;
 	private int row, col;
 	private String label;
+	private boolean select;
+	
 	
 	public CheckerPiece(int row, int col, Color color)
 	{
@@ -22,6 +24,7 @@ public class CheckerPiece extends JButton
 		this.color = color;
 		this.row = row;
 		this.col = col;
+		this.select = false;
 		this.label = "(" + row + "," + col + ")";
 	}
 	
@@ -31,8 +34,10 @@ public class CheckerPiece extends JButton
 		
 		super.paintComponent(g2);
 		g2.setColor(color);
-		g2.drawOval(pieceX, pieceY, pieceSize, pieceSize);
 		g2.fillOval(pieceX, pieceY, pieceSize, pieceSize);
+		if (select)
+			g2.setColor(Color.BLUE);
+		g2.drawOval(pieceX, pieceY, pieceSize, pieceSize);
 	}
 	
 	public int getRow()
@@ -45,8 +50,25 @@ public class CheckerPiece extends JButton
 		return this.col;
 	}
 	
+	public Color getColor()
+	{
+		return this.color;
+	}
+	
 	public String getLabel()
 	{
 		return this.label;
 	}
+	
+	public boolean isSelect()
+	{
+		return select;
+	}
+	
+	public void select(boolean s)
+	{
+		select = s;
+		repaint();
+	}
+
 }

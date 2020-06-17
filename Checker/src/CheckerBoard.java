@@ -50,7 +50,15 @@ public class CheckerBoard extends JPanel implements MouseListener
 	public void addPiece(CheckerPiece piece, int row, int col)
 	{		
 		tile[row][col].add(piece, BorderLayout.CENTER);
+		tile[row][col].setOccupied(piece.getColor());
 		piece.repaint();
+	}
+	
+	public void removePiece(CheckerPiece piece, int row, int col)
+	{		
+		tile[row][col].remove(piece);
+		tile[row][col].setOccupied(Color.BLACK);
+		tile[row][col].repaint();
 	}
 	
 	public void mouseClicked(MouseEvent e) 

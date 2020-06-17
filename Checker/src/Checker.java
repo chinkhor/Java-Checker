@@ -58,7 +58,7 @@ public class Checker
 			label.setText("Current Player: WHITE  ");
 	}
 	
-	public CheckerPlayer getPlayer(Color color)
+	public static CheckerPlayer getPlayer(Color color)
 	{
 		if (color == Color.ORANGE)
 			return playerOrange;
