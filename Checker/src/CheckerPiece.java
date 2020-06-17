@@ -50,21 +50,21 @@ public class CheckerPiece extends JButton
 		Graphics2D g2 = (Graphics2D) g;
 		
 		super.paintComponent(g2);
+		
 		g2.setColor(color);
 		g2.fillOval(pieceX, pieceY, pieceSize, pieceSize);
-		
+		if (crowned)
+	    {
+	    	g2.drawImage(img, pieceX, pieceY, pieceSize, pieceSize, null);
+	    }  
+	
 		if (select)
 		{
 			g2.setColor(Color.BLUE);
 			// increase the line thickness
 			g2.setStroke(new BasicStroke(3));
 		}
-		g2.drawOval(pieceX, pieceY, pieceSize, pieceSize);
-		
-	    if (crowned)
-	    {
-	    	g2.drawImage(img, pieceX, pieceY, pieceSize, pieceSize,  null);
-	    }  
+		g2.drawOval(pieceX, pieceY, pieceSize, pieceSize);  
 	}
 	
 	public int getRow()

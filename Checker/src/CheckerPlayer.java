@@ -192,8 +192,10 @@ public class CheckerPlayer implements ActionListener {
 		{
 			if ((rowDiff == 1) && (colDiff == 1) && !piece.getPreSelect()) // prohibit move if the piece is preSelect (i.e. must do jump/capture)
 				move(piece, dstRow, dstCol);
-			else if ((rowDiff == 2) && (colDiff == 2))
+			else if ((rowDiff == 2) && (colDiff == 2) && !piece.getCrown())
 				jump(piece, dstRow, dstCol);
+			else if (piece.getCrown())
+				fly(piece, dstRow, dstCol);
 			else
 				System.out.println("Invalid action for " + piece.getLabel());
 		}	
@@ -235,7 +237,8 @@ public class CheckerPlayer implements ActionListener {
 	public void move(CheckerPiece piece, int row, int col)
 	{
 		if (((piece.getColor() == Color.ORANGE) && (row < piece.getRow())) ||
-			((piece.getColor() == Color.WHITE) && (row > piece.getRow())))
+			((piece.getColor() == Color.WHITE) && (row > piece.getRow())) ||
+			  piece.getCrown())
 		{	
 			// move piece in the board
 			CheckerBoard board = Checker.getBoard();
@@ -247,7 +250,7 @@ public class CheckerPlayer implements ActionListener {
 			piece.setRow(row);
 			piece.setCol(col);
 			piece.setLabel("(" + row + "," + col + ")");
-			if (row == kingRow)
+			if ((row == kingRow) && !piece.getCrown())
 				piece.setCrown();
 			
 			actionComplete();
@@ -312,7 +315,7 @@ public class CheckerPlayer implements ActionListener {
 				piece.setRow(row);
 				piece.setCol(col);
 				piece.setLabel("(" + row + "," + col + ")");
-				if (row == kingRow)
+				if ((row == kingRow) && !piece.getCrown())
 					piece.setCrown();
 				
 				// remove opponent piece
@@ -337,6 +340,85 @@ public class CheckerPlayer implements ActionListener {
 		}
 	}
 	
+	public void fly(CheckerPiece piece, int dstRow, int dstCol)
+	{
+		int srcRow = piece.getRow();
+		int srcCol = piece.getCol();
+		
+		// fly diagonally
+		if (Math.abs(dstRow - srcRow) == Math.abs(dstCol - srcCol))
+		{
+			// check any obstacle piece along the fly
+			int incrementRow = (dstRow - srcRow)/Math.abs(dstRow - srcRow);
+			int incrementCol = (dstCol - srcCol)/Math.abs(dstCol - srcCol);
+			int row = srcRow;
+			int col = srcCol;
+			int opponentCount = 0;
+			int opponentRow = -1;
+			int opponentCol = -1;
+			
+			CheckerBoard board = Checker.getBoard();
+			CheckerTile[][] tile = board.getTileArray();
+			
+			// since this is diagonal fly, just check for row (col will increment accordingly too)
+			while (row != dstRow)
+			{
+				row += incrementRow;
+				col += incrementCol;
+				
+				if (tile[row][col].getOccupied() == Checker.getOpponentPlayer())
+				{
+					opponentCount++;
+					opponentRow = row;
+					opponentCol = col;
+					
+					// two opponent pieces found, cannot fly
+					if (opponentCount > 1) // two opponent pieces along the fly
+						return;
+				}
+				// block by own piece, cannot fly
+				else if (tile[row][col].getOccupied() == Checker.getCurrentPlayer()) 
+				{
+					return;
+				}
+				// else occupied = Color.BLACK, i.e. tile is unoccupied. In this case, continue to next diagonal tile
+			}
+				
+			if (opponentCount == 1)
+			{			
+				// move piece in the board
+				board.removePiece(piece, piece.getRow(), piece.getCol());
+				board.addPiece(piece, dstRow, dstCol);	
+				
+				// set piece attribute for new location
+				piece.select(false);
+				piece.setRow(dstRow);
+				piece.setCol(dstCol);
+				piece.setLabel("(" + dstRow + "," + dstCol + ")");
+				
+				// remove opponent piece
+				capture(opponentRow, opponentCol);
+			
+				// clear preSelectList after making one successful fly
+				clrPreSelection();
+				
+				// check for double fly
+				/*if (board.canFlyCapture(piece.getColor(), row, col))
+				{
+					piece.select(true);
+					setState(STATE_FLIED);
+				}
+				else 
+				*/
+					actionComplete();
+			}
+		}
+		else
+		{
+			System.out.println("Piece " + piece.getLabel() + " cannot fly non-diagnolly");
+		}
+	}
+	
 	public void checkPlayerPossibleMove()
 	{
 		CheckerPlayer player = Checker.getPlayer(Checker.getCurrentPlayer());
@@ -349,11 +431,17 @@ public class CheckerPlayer implements ActionListener {
 			int row = piece.getRow();
 			int col = piece.getCol();
 			
-			if (board.canJumpCapture(piece.getColor(), row, col))
+			if (!piece.getCrown() && board.canJumpCapture(piece.getColor(), row, col))
 			{
 				// save the piece with capture possibility to preSelectList
 				preSelectList.add(piece);
 				System.out.println("checkPlayerPossibleMove: piece (" + row + "," + col + ") can capture. ");
+			}
+			else if (piece.getCrown() && board.canFlyCapture(piece.getColor(), row, col))
+			{
+				// save the crowned king piece with capture possibility to preSelectList
+				preSelectList.add(piece);
+				System.out.println("checkPlayerPossibleMove: king (" + row + "," + col + ") can capture. ");
 			}
 		}
 		

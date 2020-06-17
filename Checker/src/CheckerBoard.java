@@ -94,11 +94,58 @@ public class CheckerBoard extends JPanel implements MouseListener
 	
 	public boolean canJumpCapture(Color pieceColor, int row, int col)
 	{
-		// check for double jump possibility
+		// check for jump possibility
 		if (((pieceColor == Color.ORANGE) &&
 			(jumpValid(row, col, -1, 1) || jumpValid(row, col, -1, -1))) ||
 			((pieceColor == Color.WHITE) &&
 			(jumpValid(row, col, 1, 1) || jumpValid(row, col, 1, -1)))) 	
+		{
+			return true;
+		}
+		else
+			return false;
+	}
+	
+	public boolean flyValid(int srcRow, int srcCol, int rowDir, int colDir)
+	{
+		int row = srcRow + rowDir;
+		int col = srcCol + colDir;
+		int opponentCount = 0;
+		
+		while (true)
+		{
+			// check out of boundary
+			if (row < 0 || row >= TILES || col < 0 || col >= TILES) 
+				return false;
+		
+			if (tile[row][col].getOccupied() == Checker.getOpponentPlayer())
+			{
+				opponentCount++;
+				// two opponent pieces found, cannot fly
+				if (opponentCount > 1) // two opponent pieces along the fly
+					return false;
+			}
+			// block by own piece, cannot fly
+			else if (tile[row][col].getOccupied() == Checker.getCurrentPlayer()) 
+			{
+				return false;
+			}
+			// detect opponent piece followed by TILE FREE, can fly
+			else if ((tile[row][col].getOccupied() == TILE_FREE) && (opponentCount == 1))
+			{
+				return true;
+			}
+			
+			row += rowDir;
+			col += colDir;
+		}
+	}
+	
+	public boolean canFlyCapture(Color pieceColor, int row, int col)
+	{
+		// check for fly possibility
+		if (flyValid(row, col, -1, 1) || flyValid(row, col, -1, -1) ||
+			flyValid(row, col, 1, 1)  || flyValid(row, col, 1, -1)) 	
 		{
 			return true;
 		}
