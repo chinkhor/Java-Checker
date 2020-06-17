@@ -12,7 +12,7 @@ public class CheckerBoard extends JPanel implements MouseListener
 {
 	public final static int TILES = 8;
 
-	public CheckerTile tile[][] = new CheckerTile[TILES][TILES];
+	private CheckerTile tile[][] = new CheckerTile[TILES][TILES];
 	
 	public CheckerBoard()
 	{
@@ -45,6 +45,11 @@ public class CheckerBoard extends JPanel implements MouseListener
 			}
 			count++;
 		}
+	}
+	
+	public CheckerTile[][] getTileArray()
+	{
+		return tile;
 	}
 	
 	public void addPiece(CheckerPiece piece, int row, int col)
