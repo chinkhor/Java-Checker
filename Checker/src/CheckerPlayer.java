@@ -20,9 +20,11 @@ public class CheckerPlayer implements ActionListener {
 	private final static int STATE_FREE = 0;
 	private final static int STATE_SELECTED = 1;
 	private final static int STATE_JUMPED = 2;
+	private final static int STATE_FLIED = 3;
 	// state = 0: free, possible next action: select
 	// state = 1: selected, possible next action: re-select, move and jump
 	// state = 2: jumped, possible next action: jump again (double jump or more)
+	// state = 3: flied, possible next action: fly again (double fly or more)
 	
 	private Timer timer;
 	private CheckerTimerTask task;
@@ -145,7 +147,9 @@ public class CheckerPlayer implements ActionListener {
 	{
 		// state = 0: free state, possible next action: piece selection
 		// state = 1: a piece is selected, possible next action: re-select, move and jump
+		//			: a king is selected, possible next action: fly
 		// state = 2: a piece is jumped, possible next action: jump again (double jump or more)
+		// state = 3: a king is flied, possible next action: fly again (double fly or more)
 		
 		int state = getState();
 					
@@ -188,6 +192,7 @@ public class CheckerPlayer implements ActionListener {
 		int colDiff = Math.abs(srcCol-dstCol);
 		
 		// if a piece is selected, possible next action is move or jump
+		// if a king is selected, possible next action is fly
 		if (state == STATE_SELECTED)
 		{
 			if ((rowDiff == 1) && (colDiff == 1) && !piece.getPreSelect()) // prohibit move if the piece is preSelect (i.e. must do jump/capture)
@@ -204,6 +209,11 @@ public class CheckerPlayer implements ActionListener {
 		{
 			if ((rowDiff == 2) && (colDiff == 2))
 				jump(piece, dstRow, dstCol);	
+		}
+		// check for double/continuous fly possibility 
+		else if (state == STATE_FLIED)
+		{
+			fly(piece, dstRow, dstCol);	
 		}
 	}
 	
@@ -383,19 +393,24 @@ public class CheckerPlayer implements ActionListener {
 				}
 				// else occupied = Color.BLACK, i.e. tile is unoccupied. In this case, continue to next diagonal tile
 			}
+			
+			// move piece in the board
+			board.removePiece(piece, piece.getRow(), piece.getCol());
+			board.addPiece(piece, dstRow, dstCol);	
 				
-			if (opponentCount == 1)
-			{			
-				// move piece in the board
-				board.removePiece(piece, piece.getRow(), piece.getCol());
-				board.addPiece(piece, dstRow, dstCol);	
-				
-				// set piece attribute for new location
-				piece.select(false);
-				piece.setRow(dstRow);
-				piece.setCol(dstCol);
-				piece.setLabel("(" + dstRow + "," + dstCol + ")");
-				
+			// set piece attribute for new location
+			piece.select(false);
+			piece.setRow(dstRow);
+			piece.setCol(dstCol);
+			piece.setLabel("(" + dstRow + "," + dstCol + ")");
+			
+			// fly only scenario, no opponent to capture
+			if ((state != STATE_FLIED) && (opponentCount == 0))
+				actionComplete();
+			
+			// fly and capture scenario
+			else if (opponentCount == 1)
+			{
 				// remove opponent piece
 				capture(opponentRow, opponentCol);
 			
@@ -403,13 +418,12 @@ public class CheckerPlayer implements ActionListener {
 				clrPreSelection();
 				
 				// check for double fly
-				/*if (board.canFlyCapture(piece.getColor(), row, col))
+				if (board.canFlyCapture(piece.getColor(), row, col))
 				{
 					piece.select(true);
 					setState(STATE_FLIED);
 				}
 				else 
-				*/
 					actionComplete();
 			}
 		}
