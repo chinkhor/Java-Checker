@@ -66,6 +66,11 @@ public class Checker
 			return playerWhite;
 	}
 	
+	public static CheckerBoard getBoard()
+	{
+		return board;
+	}
+	
 	public static void main(String[] args) 
 	{
 		new Checker();

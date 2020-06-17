@@ -1,3 +1,4 @@
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -35,8 +36,13 @@ public class CheckerPiece extends JButton
 		super.paintComponent(g2);
 		g2.setColor(color);
 		g2.fillOval(pieceX, pieceY, pieceSize, pieceSize);
+		
 		if (select)
+		{
 			g2.setColor(Color.BLUE);
+			// increase the line thickness
+			g2.setStroke(new BasicStroke(3));
+		}
 		g2.drawOval(pieceX, pieceY, pieceSize, pieceSize);
 	}
 	
@@ -48,6 +54,16 @@ public class CheckerPiece extends JButton
 	public int getCol()
 	{
 		return this.col;
+	}
+	
+	public void setRow(int row)
+	{
+		this.row = row;
+	}
+	
+	public void setCol(int col)
+	{
+		this.col = col;
 	}
 	
 	public Color getColor()

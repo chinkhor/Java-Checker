@@ -1,3 +1,4 @@
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -84,31 +85,9 @@ public class CheckerPlayer implements ActionListener {
 		// check if current player's piece is in action
 		if (Checker.getCurrentPlayer() == piece.getColor())
 		{
-			// state = 0: free state, possible next action: piece selection
-			// state = 1: a piece is selected, possible next action: re-select, move and jump
-			// state = 2: a piece is jumped, possible next action: jump again (double jump or more)
 			CheckerPlayer player = Checker.getPlayer(Checker.getCurrentPlayer());
-			int state = player.getState();
-			
-			if ((state == STATE_FREE) || (state == STATE_SELECTED))
-			{
-				player.setState(STATE_SELECTED); // select or re-select sets this state
-				
-				// de-select any piece formerly selected
-				// if there is one, it is always located at head of the player piece array list (index 0)
-				CheckerPiece p = player.pieces.get(0);
-				if (p.isSelect())
-					p.select(false);
-				
-				// select the newly selected piece
-				piece.select(true);
-				
-				// and move the selected piece to the head of the player piece array list  
-				player.pieces.remove(piece);
-				player.pieces.add(0, piece); 
-			}	
+			player.srcActionNotify(piece);
 		}
-	
 	}
 	
 	public void setState (int state)
@@ -120,5 +99,88 @@ public class CheckerPlayer implements ActionListener {
 	{
 		return this.state;
 	}
+	
+	public void srcActionNotify(CheckerPiece piece)
+	{
+		// state = 0: free state, possible next action: piece selection
+		// state = 1: a piece is selected, possible next action: re-select, move and jump
+		// state = 2: a piece is jumped, possible next action: jump again (double jump or more)
+		
+		int state = getState();
+					
+		if ((state == STATE_FREE) || (state == STATE_SELECTED))
+		{
+			setState(STATE_SELECTED); // select or re-select sets this state
+						
+			// de-select any piece formerly selected
+			// if there is one, it is always located at head of the player piece array list (index 0)
+			CheckerPiece p = pieces.get(0);
+			if (p.isSelect())
+				p.select(false);
+						
+			// select the newly selected piece
+			piece.select(true);
+						
+			// and move the selected piece to the head of the player piece array list  
+			pieces.remove(piece);
+			pieces.add(0, piece); 
+		}			
+	}
+	
+	public void dstActionNotify(CheckerTile tile)
+	{
+		int state = getState();
+		
+		if (state == STATE_SELECTED)
+		{
+			// de-select any piece formerly selected
+			// if there is one, it is always located at head of the player piece array list (index 0)
+			CheckerPiece piece = pieces.get(0);
+			
+			int srcRow = piece.getRow();
+			int srcCol = piece.getCol();
+			int dstRow = tile.getRow();
+			int dstCol = tile.getCol();
+			int rowDiff = Math.abs(srcRow-dstRow);
+			int colDiff = Math.abs(srcCol-dstCol);
+			
+			if ((rowDiff == 1) && (colDiff == 1))
+				move(piece, dstRow, dstCol);
+			//else if ((rowDiff == 2) && (colDiff == 2))
+			//	jump(piece, dstRow, dstCol);
+			else
+				System.out.println("Invalid action for " + piece.getLabel());
+		}			
+	}
+	
+	public void actionComplete()
+	{
+		setState(STATE_FREE); // reset to free state
+		Checker.turnOver();
+	}
+	
+	public void move(CheckerPiece piece, int row, int col)
+	{
+		if (((piece.getColor() == Color.ORANGE) && (row < piece.getRow())) ||
+			((piece.getColor() == Color.WHITE) && (row > piece.getRow())))
+		{	
+			// move piece in the board
+			CheckerBoard board = Checker.getBoard();
+			board.removePiece(piece, piece.getRow(), piece.getCol());
+			board.addPiece(piece, row, col);	
+			
+			// set piece attribute for new location
+			piece.select(false);
+			piece.setRow(row);
+			piece.setCol(col);
+			
+			actionComplete();
+		}
+		else
+		{
+			System.out.println("Piece " + piece.getLabel() + " cannot move backward");
+		}
+	}
+	
 }
 
