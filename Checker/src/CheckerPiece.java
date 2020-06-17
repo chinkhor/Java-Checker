@@ -15,6 +15,7 @@ public class CheckerPiece extends JButton
 	private int row, col;
 	private String label;
 	private boolean select;
+	private boolean preSelect;
 	
 	
 	public CheckerPiece(int row, int col, Color color)
@@ -26,6 +27,7 @@ public class CheckerPiece extends JButton
 		this.row = row;
 		this.col = col;
 		this.select = false;
+		this.preSelect = false;
 		this.label = "(" + row + "," + col + ")";
 	}
 	
@@ -71,6 +73,11 @@ public class CheckerPiece extends JButton
 		return this.color;
 	}
 	
+	public void setLabel(String str)
+	{
+		this.label = str;
+	}
+	
 	public String getLabel()
 	{
 		return this.label;
@@ -81,10 +88,19 @@ public class CheckerPiece extends JButton
 		return select;
 	}
 	
+	public boolean getPreSelect()
+	{
+		return preSelect;
+	}
+	
+	public void setPreSelect(boolean s)
+	{
+		preSelect = s;
+	}
+
 	public void select(boolean s)
 	{
 		select = s;
 		repaint();
 	}
-
 }

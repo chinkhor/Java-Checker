@@ -3,19 +3,20 @@ import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.Timer;
 
 public class CheckerPlayer implements ActionListener {
 
 	private Color playerColor;
 	private CheckerBoard board;
 	// player array list, store all its pieces
-	private ArrayList<CheckerPiece> pieces;
+	private ArrayList<CheckerPiece> pieces; 
+	
+	// player array list, store the pieces that have capture in next action
+	private ArrayList<CheckerPiece> preSelectList;
 	
 	// number of rows for each player = half of number of tiles per row minus one
 	private final int PLAY_ROWS = CheckerBoard.TILES/2 - 1;
-	
-	// use Color.Black as indicator as the tile is free (unoccupied)
-	private final Color TILE_FREE = Color.black;
 	
 	private int state = 0;
 	private final static int STATE_FREE = 0;
@@ -25,6 +26,9 @@ public class CheckerPlayer implements ActionListener {
 	// state = 1: selected, possible next action: re-select, move and jump
 	// state = 2: jumped, possible next action: jump again (double jump or more)
 	
+	private Timer timer;
+	private CheckerTimerTask task;
+	
 	public CheckerPlayer(Color color, CheckerBoard board)
 	{
 		int startRow, endRow;
@@ -32,6 +36,7 @@ public class CheckerPlayer implements ActionListener {
 		this.playerColor = color;
 		this.board = board;
 		this.pieces = new ArrayList<CheckerPiece>();
+		this.preSelectList = new ArrayList<CheckerPiece>();
 		this.state = 0;
 	
 		// player ORANGE is at bottom of board
@@ -63,6 +68,9 @@ public class CheckerPlayer implements ActionListener {
 			}
 		}
 		showPlayerPieceList();
+		
+		// start timer
+		timer = new Timer();
 	}
 	
 	public void showPlayerPieceList()
@@ -88,8 +96,27 @@ public class CheckerPlayer implements ActionListener {
 		// check if current player's piece is in action
 		if (Checker.getCurrentPlayer() == piece.getColor())
 		{
-			CheckerPlayer player = Checker.getPlayer(Checker.getCurrentPlayer());
-			player.srcActionNotify(piece);
+			if (preSelectList.isEmpty())
+			{
+				srcActionNotify(piece);
+			}
+			else
+			{
+				// if preSelectList is not empty, next selected piece must be one of preSelectList
+				for (CheckerPiece p : preSelectList)
+				{
+					if (p.getLabel().equals(piece.getLabel()))
+					{
+						p.setPreSelect(true);
+						srcActionNotify(piece);
+						//break; do not break here to allow the loop to walk thru preSelectList to clear preSelect flag for non-selected piece 
+					}
+					else
+					{
+						p.setPreSelect(false);
+					}
+				}
+			}
 		}
 	}
 	
@@ -101,6 +128,16 @@ public class CheckerPlayer implements ActionListener {
 	public int getState()
 	{
 		return this.state;
+	}
+	
+	public ArrayList<CheckerPiece> getPieceArrayList()
+	{
+		return pieces;
+	}
+	
+	public ArrayList<CheckerPiece> getPreSelectArrayList()
+	{
+		return preSelectList;
 	}
 	
 	public void srcActionNotify(CheckerPiece piece)
@@ -134,9 +171,9 @@ public class CheckerPlayer implements ActionListener {
 	{
 		int state = getState();
 		
+		// no piece is selected, no further action can be performed
 		if (state == STATE_FREE)
 			return;
-		
 		
 		// de-select any piece formerly selected
 		// if there is one, it is always located at head of the player piece array list (index 0)
@@ -149,9 +186,10 @@ public class CheckerPlayer implements ActionListener {
 		int rowDiff = Math.abs(srcRow-dstRow);
 		int colDiff = Math.abs(srcCol-dstCol);
 		
+		// if a piece is selected, possible next action is move or jump
 		if (state == STATE_SELECTED)
 		{
-			if ((rowDiff == 1) && (colDiff == 1))
+			if ((rowDiff == 1) && (colDiff == 1) && !piece.getPreSelect()) // prohibit move if the piece is preSelect (i.e. must do jump/capture)
 				move(piece, dstRow, dstCol);
 			else if ((rowDiff == 2) && (colDiff == 2))
 				jump(piece, dstRow, dstCol);
@@ -166,10 +204,31 @@ public class CheckerPlayer implements ActionListener {
 		}
 	}
 	
+	public void clrPreSelection()
+	{	
+		// clear preSelectList and its pieces
+		for (CheckerPiece piece: preSelectList)
+		{
+			// a task is blinking the piece. Make sure it is set back to visible.
+			piece.setVisible(true);
+			piece.setPreSelect(false);
+		}
+				
+		// clear preSelectList
+		preSelectList.clear();
+				
+		// kill the task
+		if (task != null)
+			task.cancel();
+	}
+	
+	
 	public void actionComplete()
 	{
+		clrPreSelection();
 		setState(STATE_FREE); // reset to free state
 		Checker.turnOver();
+		checkPlayerPossibleMove();
 	}
 	
 	public void move(CheckerPiece piece, int row, int col)
@@ -186,6 +245,7 @@ public class CheckerPlayer implements ActionListener {
 			piece.select(false);
 			piece.setRow(row);
 			piece.setCol(col);
+			piece.setLabel("(" + row + "," + col + ")");
 			
 			actionComplete();
 		}
@@ -201,6 +261,7 @@ public class CheckerPlayer implements ActionListener {
 		CheckerPlayer player = Checker.getPlayer(Checker.getOpponentPlayer());
 		CheckerPiece capturePiece = null;
 		
+		// get the piece to capture
 		for (CheckerPiece piece : player.pieces)
 		{
 			if ((piece.getRow()==row) && (piece.getCol()==col))
@@ -222,42 +283,7 @@ public class CheckerPlayer implements ActionListener {
 			System.out.println("Piece (" + row + "," + col + ") does not exist, cannot capture");
 	}
 	
-	public boolean jumpValid(int pieceRow, int pieceCol, int rowDir, int colDir)
-	{
-		int row = pieceRow + rowDir;
-		int col = pieceCol + colDir;
-		int row2 = row + rowDir;
-		int col2 = col + colDir;
-		
-		CheckerBoard board = Checker.getBoard();
-		CheckerTile[][] tile = board.getTileArray();
-		
-		// check out of boundary
-		if ((row < 0 || row >= CheckerBoard.TILES || col < 0 || col >= CheckerBoard.TILES) ||
-			(row2 < 0 || row2 >= CheckerBoard.TILES || col2 < 0 || col2 >= CheckerBoard.TILES))
-			return false;
-		
-		if ((tile[row][col].getOccupied() == Checker.getOpponentPlayer()) && 
-			(tile[row2][col2].getOccupied() == TILE_FREE))
-			return true;
-		else
-			return false;
-		
-	}
-	
-	public boolean canDoubleJump(CheckerPiece piece, int row, int col)
-	{
-		if (((piece.getColor() == Color.ORANGE) &&
-			(jumpValid(row, col, -1, 1) || jumpValid(row, col, -1, -1))) ||
-			((piece.getColor() == Color.WHITE) &&
-			(jumpValid(row, col, 1, 1) || jumpValid(row, col, 1, -1)))) 	
-		{
-			return true;
-		}
-		else
-			return false;
-	}
-	
+
 	public void jump(CheckerPiece piece, int row, int col)
 	{
 		if (((piece.getColor() == Color.ORANGE) && (row < piece.getRow())) ||
@@ -271,6 +297,7 @@ public class CheckerPlayer implements ActionListener {
 			CheckerBoard board = Checker.getBoard();
 			CheckerTile[][] tile = board.getTileArray();
 			
+			// if the middle tile is occupied by opponent piece, capture is valid
 			if (tile[midRow][midCol].getOccupied() == Checker.getOpponentPlayer())
 			{
 				// move piece in the board
@@ -285,7 +312,11 @@ public class CheckerPlayer implements ActionListener {
 				// remove opponent piece
 				capture(midRow, midCol);
 			
-				if (canDoubleJump(piece, row, col))
+				// clear preSelectList after making one successful jump
+				clrPreSelection();
+				
+				// check for double jump
+				if (board.canJumpCapture(piece.getColor(), row, col))
 				{
 					piece.select(true);
 					setState(STATE_JUMPED);
@@ -297,6 +328,35 @@ public class CheckerPlayer implements ActionListener {
 		else
 		{
 			System.out.println("Piece " + piece.getLabel() + " cannot jump backward");
+		}
+	}
+	
+	public void checkPlayerPossibleMove()
+	{
+		CheckerPlayer player = Checker.getPlayer(Checker.getCurrentPlayer());
+		CheckerBoard board = Checker.getBoard();
+		ArrayList<CheckerPiece> pieces = player.getPieceArrayList();
+		ArrayList<CheckerPiece> preSelectList = player.getPreSelectArrayList();
+		
+		// check any piece have capture possibility in next action
+		for (CheckerPiece piece : player.pieces)
+		{
+			int row = piece.getRow();
+			int col = piece.getCol();
+			
+			if (board.canJumpCapture(piece.getColor(), row, col))
+			{
+				// save the piece with capture possibility to preSelectList
+				preSelectList.add(piece);
+				System.out.println("checkPlayerPossibleMove: piece (" + row + "," + col + ") can capture. ");
+			}
+		}
+		
+		if (!preSelectList.isEmpty())
+		{
+			// start a timer task to blink the piece for attention
+			task = new CheckerTimerTask();
+			timer.schedule(task, 500, 500);
 		}
 	}
 }
