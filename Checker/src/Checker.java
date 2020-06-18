@@ -106,6 +106,9 @@ public class Checker
 					System.exit(0);
 				}
 			});
+		
+		frame.pack();
+		frame.repaint();
 	}
 	
 	public static Color getCurrentPlayer()
