@@ -140,11 +140,11 @@ public class Checker
 		}
 		else
 		{
-			
 			if (computerPlayer)
 			{	
 				label.setText("Current Player: WHITE  ");
-				playerWhite.performNextAction();
+				Thread t1 =new Thread(playerWhite);  
+				t1.start();  
 			}
 			else 
 			{

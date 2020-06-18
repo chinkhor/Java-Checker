@@ -1,9 +1,8 @@
 import java.awt.Color;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
 
-public class CheckerComputerPlayer extends CheckerPlayer {
-
+public class CheckerComputerPlayer extends CheckerPlayer implements Runnable 
+{
 	public CheckerComputerPlayer(Color color, CheckerBoard board)
 	{
 		super(color, board);
@@ -78,7 +77,19 @@ public class CheckerComputerPlayer extends CheckerPlayer {
 			
 	}
 	
-	public boolean performNextAction()
+	public void delay(int s)
+	{
+		try
+		{
+			Thread.sleep(s);
+		}
+		catch(InterruptedException ex)
+		{
+			Thread.currentThread().interrupt();
+		}
+	}
+	
+	public void run()
 	{
 		checkPlayerPossibleCapture();
 		
@@ -102,16 +113,18 @@ public class CheckerComputerPlayer extends CheckerPlayer {
 					if (board.moveValid(row, col, 1, 1))
 					{
 						srcActionNotify(piece);
+						delay(1000);
 						move(piece, row+1, col+1);
 					}
 					else if (board.moveValid(row, col, 1, -1))
 					{
 						srcActionNotify(piece);
+						delay(1000);
 						move(piece, row+1, col-1);
 					}
 					else
 					{
-						System.out.println("performNextAction: piece (" + row + "," + col + ") has no valid move/fly");
+						System.out.println("Computer run: piece (" + row + "," + col + ") has no valid move/fly");
 					}
 					break;
 				}
@@ -120,16 +133,18 @@ public class CheckerComputerPlayer extends CheckerPlayer {
 					if (board.jumpValid(row, col, 1, 1))
 					{
 						srcActionNotify(piece);
+						delay(1000);
 						jump(piece, row+2, col+2);
 					}
 					else if (board.jumpValid(row, col, 1, -1))
 					{
 						srcActionNotify(piece);
+						delay(1000);
 						jump(piece, row+2, col-2);
 					}
 					else
 					{
-						System.out.println("performNextAction: piece (" + row + "," + col + ") has no valid jump");
+						System.out.println("Computer run: piece (" + row + "," + col + ") has no valid jump");
 					}
 					break;
 				}
@@ -139,37 +154,37 @@ public class CheckerComputerPlayer extends CheckerPlayer {
 					if (board.flyCaptureValid(piece, row, col, 1, 1))
 					{
 						srcActionNotify(piece);
+						delay(1000);
 						fly(piece, piece.getTgtRow(), piece.getTgtCol());
 					}
 					else if (board.flyCaptureValid(piece, row, col, 1, -1))
 					{
 						srcActionNotify(piece);
+						delay(1000);
 						fly(piece, piece.getTgtRow(), piece.getTgtCol());
 					}
 					else if (board.flyCaptureValid(piece, row, col, -1, 1))
 					{
 						srcActionNotify(piece);
+						delay(1000);
 						fly(piece, piece.getTgtRow(), piece.getTgtCol());
 					}
 					else if (board.flyCaptureValid(piece, row, col, -1, -1))
 					{
 						srcActionNotify(piece);
+						delay(1000);
 						fly(piece, piece.getTgtRow(), piece.getTgtCol());
 					}
 					else
 					{
-						System.out.println("performNextAction: piece (" + row + "," + col + ") has no valid fly capture");
+						System.out.println("Computer run: piece (" + row + "," + col + ") has no valid fly capture");
 					}
 					break;
 				}					
 				
 				default:
+					System.out.println("Computer run: piece (" + row + "," + col + ") has no valid next action");
 			}
-			return true;
-		}
-		else
-		{
-			return false;
 		}
 	}
 }
