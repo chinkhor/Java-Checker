@@ -241,7 +241,7 @@ public class CheckerPlayer implements ActionListener {
 		clrPreSelection();
 		setState(STATE_FREE); // reset to free state
 		Checker.turnOver();
-		checkPlayerPossibleMove();
+		checkPlayerPossibleCapture();
 	}
 	
 	public void move(CheckerPiece piece, int row, int col)
@@ -433,7 +433,7 @@ public class CheckerPlayer implements ActionListener {
 		}
 	}
 	
-	public void checkPlayerPossibleMove()
+	public void checkPlayerPossibleCapture()
 	{
 		CheckerPlayer player = Checker.getPlayer(Checker.getCurrentPlayer());
 		CheckerBoard board = Checker.getBoard();

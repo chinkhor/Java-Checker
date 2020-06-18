@@ -50,6 +50,7 @@ public class Checker
 
 	public static void restartChecker()
 	{	
+		/* alternative method
 		frame.remove(board);
 		board = new CheckerBoard();
 		frame.add(board, BorderLayout.CENTER);
@@ -61,6 +62,10 @@ public class Checker
 		playerWhite = new CheckerPlayer(opponentPlayer, board);
 		frame.pack();
 		frame.repaint();
+		*/
+		frame.setVisible(false);
+		frame.dispose();
+		new Checker();
 	}
 	
 	public static void startNewGame()
