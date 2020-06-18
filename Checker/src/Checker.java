@@ -131,6 +131,17 @@ public class Checker
 			{
 				label.setText("Current Player: ORANGE ");
 				playerOrange.checkPlayerPossibleCapture();
+				if (playerOrange.getPreSelectArrayList().isEmpty())
+				{
+					// check if player is running out of move
+					playerOrange.checkPlayerPossibleMove();
+					playerOrange.clrPreSelection(); // clear preSelectList here to allow player to move
+				}
+				if (playerOrange.getSurrender())
+				{
+					label.setText("Player WHITE won !!!");
+					startNewGame();
+				}
 			}
 			else
 			{
@@ -152,10 +163,23 @@ public class Checker
 				{
 					label.setText("Current Player: WHITE  ");
 					playerWhite.checkPlayerPossibleCapture();
+					
+					if (playerWhite.getPreSelectArrayList().isEmpty())
+					{
+						// check if player is running out of move
+						playerWhite.checkPlayerPossibleMove();
+						playerWhite.clrPreSelection(); // clear preSelectList here to allow player to move
+					}
+					if (playerWhite.getSurrender())
+					{
+						label.setText("Player ORANGE won !!!");
+						startNewGame();
+					}
+					
 				}
 			}
 			
-			if (playerWhite.getPieceArrayList().isEmpty())
+			if (playerWhite.getPieceArrayList().isEmpty() || playerWhite.getSurrender())
 			{
 				label.setText("Player ORANGE won !!!");
 				startNewGame();

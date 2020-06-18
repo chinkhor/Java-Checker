@@ -30,6 +30,7 @@ public class CheckerPlayer implements ActionListener {
 	protected CheckerTimerTask task;
 	
 	protected int kingRow;
+	protected boolean surrender = false;
 	
 	public CheckerPlayer(Color color, CheckerBoard board)
 	{
@@ -121,6 +122,11 @@ public class CheckerPlayer implements ActionListener {
 				}
 			}
 		}
+	}
+	
+	public boolean getSurrender()
+	{
+		return this.surrender;
 	}
 	
 	public void setState (int state)
@@ -435,6 +441,39 @@ public class CheckerPlayer implements ActionListener {
 		}
 	}
 	
+	public void checkPlayerPossibleMove()
+	{
+		CheckerBoard board = Checker.getBoard();
+			
+		// check any piece have move possibility in next action
+		for (CheckerPiece piece : pieces)
+		{
+			int row = piece.getRow();
+			int col = piece.getCol();
+				
+			if (!piece.getCrown() && board.canMove(piece.getColor(), row, col))
+			{
+				// save the piece with move possibility to preSelectList
+				preSelectList.add(piece);
+				piece.setNextAction(CheckerPiece.A_MOVE);
+				System.out.println("checkPlayerPossibleMove: piece (" + row + "," + col + ") can move. ");
+			}
+			else if (piece.getCrown() && board.canFly(piece.getColor(), row, col))
+			{
+				// save the crowned king piece with fly possibility to preSelectList
+				preSelectList.add(0, piece);
+				piece.setNextAction(CheckerPiece.A_FLY);
+				System.out.println("checkPlayerPossibleMove: king (" + row + "," + col + ") can fly. ");
+			}
+		}
+		
+		if (preSelectList.isEmpty())
+		{
+			surrender = true;
+		}
+			
+	}
+	
 	public void checkPlayerPossibleCapture()
 	{
 		CheckerPlayer player = Checker.getPlayer(Checker.getCurrentPlayer());
@@ -451,12 +490,14 @@ public class CheckerPlayer implements ActionListener {
 			{
 				// save the piece with capture possibility to preSelectList
 				preSelectList.add(piece);
+				piece.setNextAction(CheckerPiece.A_JUMP);
 				System.out.println("checkPlayerPossibleCapture: piece (" + row + "," + col + ") can capture. ");
 			}
 			else if (piece.getCrown() && board.canFlyCapture(piece.getColor(), row, col))
 			{
 				// save the crowned king piece with capture possibility to preSelectList
 				preSelectList.add(piece);
+				piece.setNextAction(CheckerPiece.A_FLYCAPTURE);
 				System.out.println("checkPlayerPossibleCapture: king (" + row + "," + col + ") can capture. ");
 			}
 		}

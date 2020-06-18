@@ -49,34 +49,6 @@ public class CheckerComputerPlayer extends CheckerPlayer implements Runnable
 		
 	}
 	
-	public void checkPlayerPossibleMove()
-	{
-		CheckerBoard board = Checker.getBoard();
-			
-		// check any piece have capture possibility in next action
-		for (CheckerPiece piece : pieces)
-		{
-			int row = piece.getRow();
-			int col = piece.getCol();
-				
-			if (!piece.getCrown() && board.canMove(piece.getColor(), row, col))
-			{
-				// save the piece with move possibility to preSelectList
-				preSelectList.add(piece);
-				piece.setNextAction(CheckerPiece.A_MOVE);
-				System.out.println("checkPlayerPossibleMove: piece (" + row + "," + col + ") can move. ");
-			}
-			else if (piece.getCrown() && board.canFly(piece.getColor(), row, col))
-			{
-				// save the crowned king piece with fly possibility to preSelectList
-				preSelectList.add(0, piece);
-				piece.setNextAction(CheckerPiece.A_FLY);
-				System.out.println("checkPlayerPossibleMove: king (" + row + "," + col + ") can fly. ");
-			}
-		}
-			
-	}
-	
 	public void delay(int s)
 	{
 		try
