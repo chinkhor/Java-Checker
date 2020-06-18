@@ -90,6 +90,26 @@ public class CheckerBoard extends JPanel implements MouseListener
 		
 	}
 	
+	public boolean moveValid(CheckerPiece piece, int pieceRow, int pieceCol, int rowDir, int colDir)
+	{
+		int row = pieceRow + rowDir;
+		int col = pieceCol + colDir;
+		
+		// check out of boundary
+		if (row < 0 || row >= TILES || col < 0 || col >= TILES)
+			return false;
+		
+		// if next diagonal tile is unoccupied
+		if (tile[row][col].getOccupied() == TILE_FREE)
+		{
+			piece.setTgtRow(row);
+			piece.setTgtCol(col);
+			return true;
+		}
+		else
+			return false;
+		
+	}
 	public boolean canMove(Color pieceColor, int row, int col)
 	{
 		// check for move possibility

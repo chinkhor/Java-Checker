@@ -78,11 +78,56 @@ public class CheckerComputerPlayer extends CheckerPlayer implements Runnable
 				jump(piece, row, col);
 				
 				System.out.printf("actionJump: piece (%d,%d) jumped to (%d,%d), state = %d\n",srcRow, srcCol, row, col, getState());
-			}		
+			}
+			else
+				System.out.println("actionJump: piece (" + row + "," + col + ") has no valid jump or further jump");
+			
 		} while (getState() == STATE_JUMPED);
 	
 	}
 	
+	public void actionMove(CheckerPiece piece, int srcRow, int srcCol)
+	{
+		CheckerBoard board = Checker.getBoard();
+		srcActionNotify(piece);
+		
+		delay(1000);
+		if (board.moveValid(piece, srcRow, srcCol, 1, 1) || board.moveValid(piece, srcRow, srcCol, 1, -1))
+		{	
+			int row = piece.getTgtRow();
+			int col = piece.getTgtCol();
+			move(piece, row, col);
+			
+			System.out.printf("actionMove: piece (%d,%d) moved to (%d,%d), state = %d\n",srcRow, srcCol, row, col, getState());
+		}		
+		else
+		{
+			System.out.println("actionMove: piece (" + srcRow + "," + srcCol + ") has no valid move");
+		}
+		
+	}
+	
+	public void actionFly(CheckerPiece piece, int srcRow, int srcCol)
+	{
+		CheckerBoard board = Checker.getBoard();
+		srcActionNotify(piece);
+		
+		delay(1000);
+		if (board.moveValid(piece, srcRow, srcCol, 1, 1) || board.moveValid(piece, srcRow, srcCol, 1, -1) || 
+			board.moveValid(piece, srcRow, srcCol, -1, 1) || board.moveValid(piece, srcRow, srcCol, -1, -1))
+		{	
+			int row = piece.getTgtRow();
+			int col = piece.getTgtCol();
+			move(piece, row, col);
+			
+			System.out.printf("actionFly: piece (%d,%d) flied to (%d,%d), state = %d\n",srcRow, srcCol, row, col, getState());
+		}		
+		else
+		{
+			System.out.println("actionFly: piece (" + srcRow + "," + srcCol + ") has no valid fly");
+		}
+		
+	}
 	public void run()
 	{
 		checkPlayerPossibleCapture();
@@ -102,24 +147,13 @@ public class CheckerComputerPlayer extends CheckerPlayer implements Runnable
 			switch (piece.getNextAction())
 			{
 				case CheckerPiece.A_MOVE:
+				{
+					actionMove(piece, row, col);
+					break;
+				}
 				case CheckerPiece.A_FLY:
 				{
-					if (board.moveValid(row, col, 1, 1))
-					{
-						srcActionNotify(piece);
-						delay(1000);
-						move(piece, row+1, col+1);
-					}
-					else if (board.moveValid(row, col, 1, -1))
-					{
-						srcActionNotify(piece);
-						delay(1000);
-						move(piece, row+1, col-1);
-					}
-					else
-					{
-						System.out.println("Computer run: piece (" + row + "," + col + ") has no valid move/fly");
-					}
+					actionFly(piece, row, col);
 					break;
 				}
 				case CheckerPiece.A_JUMP:
