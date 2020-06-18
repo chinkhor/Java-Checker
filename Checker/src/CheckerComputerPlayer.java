@@ -61,6 +61,28 @@ public class CheckerComputerPlayer extends CheckerPlayer implements Runnable
 		}
 	}
 	
+	public void actionJump(CheckerPiece piece, int srcRow, int srcCol)
+	{
+		CheckerBoard board = Checker.getBoard();
+		srcActionNotify(piece);
+		
+		int row = srcRow;
+		int col = srcCol;		
+		do
+		{
+			delay(1000);
+			if (board.jumpValid(piece, row, col, 1, 1) || board.jumpValid(piece, row, col, 1, -1))
+			{
+				row = piece.getTgtRow();
+				col = piece.getTgtCol();
+				jump(piece, row, col);
+				
+				System.out.printf("actionJump: piece (%d,%d) jumped to (%d,%d), state = %d\n",srcRow, srcCol, row, col, getState());
+			}		
+		} while (getState() == STATE_JUMPED);
+	
+	}
+	
 	public void run()
 	{
 		checkPlayerPossibleCapture();
@@ -102,22 +124,7 @@ public class CheckerComputerPlayer extends CheckerPlayer implements Runnable
 				}
 				case CheckerPiece.A_JUMP:
 				{
-					if (board.jumpValid(row, col, 1, 1))
-					{
-						srcActionNotify(piece);
-						delay(1000);
-						jump(piece, row+2, col+2);
-					}
-					else if (board.jumpValid(row, col, 1, -1))
-					{
-						srcActionNotify(piece);
-						delay(1000);
-						jump(piece, row+2, col-2);
-					}
-					else
-					{
-						System.out.println("Computer run: piece (" + row + "," + col + ") has no valid jump");
-					}
+					actionJump(piece, row, col);
 					break;
 				}
 					

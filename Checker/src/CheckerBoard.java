@@ -125,6 +125,31 @@ public class CheckerBoard extends JPanel implements MouseListener
 		
 	}
 	
+	public boolean jumpValid(CheckerPiece piece, int pieceRow, int pieceCol, int rowDir, int colDir)
+	{
+		int row = pieceRow + rowDir;
+		int col = pieceCol + colDir;
+		int row2 = row + rowDir;
+		int col2 = col + colDir;
+		
+		// check out of boundary
+		if ((row < 0 || row >= TILES || col < 0 || col >= TILES) ||
+			(row2 < 0 || row2 >= TILES || col2 < 0 || col2 >= TILES))
+			return false;
+		
+		// if next diagonal tile is occupied by opponent piece and there is occupied tile after the opponent piece, can jump again
+		if ((tile[row][col].getOccupied() == Checker.getOpponentPlayer()) && 
+			(tile[row2][col2].getOccupied() == TILE_FREE))
+		{
+			piece.setTgtRow(row2);
+			piece.setTgtCol(col2);
+			return true;
+		}
+		else
+			return false;
+		
+	}
+	
 	public boolean canJumpCapture(Color pieceColor, int row, int col)
 	{
 		// check for jump possibility
