@@ -17,11 +17,25 @@ public class CheckerPiece extends JButton
 	private int pieceY = CheckerTile.TILE_SIZE/4;
 	private int pieceSize = CheckerTile.TILE_SIZE/2;
 	private int row, col;
+	private int tgtRow, tgtCol;
 	private String label;
 	private boolean select;
 	private boolean preSelect;
 	private Image img;	
 	private boolean crowned;
+	private int nextAction = 0;
+	public static final int A_MOVE = 1;
+	public static final int A_FLY = 2;
+	public static final int A_JUMP = 3;
+	public static final int A_FLYCAPTURE = 4;
+	public static final int A_DOUBLE_JUMP = 5;
+	public static final int A_DOUBLE_FLYCAPTURE = 6;
+	// nextAction = 1: move
+	// nextAction = 2: fly
+	// nextAction = 3: jump
+	// nextAction = 4: fly capture
+	// nextAction = 5: double/continuous jump
+	// nextAction = 6: double/continuous fly capture
 	
 	public CheckerPiece(int row, int col, Color color)
 	{
@@ -67,6 +81,16 @@ public class CheckerPiece extends JButton
 		g2.drawOval(pieceX, pieceY, pieceSize, pieceSize);  
 	}
 	
+	public void setNextAction(int action)
+	{
+		this.nextAction = action;
+	}
+	
+	public int getNextAction()
+	{
+		return this.nextAction;
+	}
+	
 	public int getRow()
 	{
 		return this.row;
@@ -85,6 +109,26 @@ public class CheckerPiece extends JButton
 	public void setCol(int col)
 	{
 		this.col = col;
+	}
+	
+	public int getTgtRow()
+	{
+		return this.tgtRow;
+	}
+	
+	public int getTgtCol()
+	{
+		return this.tgtCol;
+	}
+	
+	public void setTgtRow(int row)
+	{
+		this.tgtRow = row;
+	}
+	
+	public void setTgtCol(int col)
+	{
+		this.tgtCol = col;
 	}
 	
 	public Color getColor()

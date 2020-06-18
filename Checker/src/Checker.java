@@ -16,8 +16,10 @@ public class Checker
 	private static Color currentPlayer, opponentPlayer;
 	private static CheckerBoard board;
 	private static JLabel label;
-	private static CheckerPlayer playerOrange, playerWhite;
+	private static CheckerPlayer playerOrange;
+	private static CheckerComputerPlayer playerWhite;
 	private static JFrame frame;
+	private static boolean computerPlayer = false;
 	
 	public Checker()
 	{
@@ -40,6 +42,7 @@ public class Checker
 		playerOrange = new CheckerPlayer(currentPlayer, board);
 		opponentPlayer = Color.WHITE;
 		playerWhite = new CheckerComputerPlayer(opponentPlayer, board);
+		computerPlayer = true;
 		
 		//frame.setSize(800, 800);
 		frame.pack(); // use the size specified by the components, and pack them.	
@@ -125,7 +128,10 @@ public class Checker
 		if (currentPlayer == Color.ORANGE)
 		{	
 			if (!playerOrange.getPieceArrayList().isEmpty())
+			{
 				label.setText("Current Player: ORANGE ");
+				playerOrange.checkPlayerPossibleCapture();
+			}
 			else
 			{
 				label.setText("Player WHITE won !!!");
@@ -134,9 +140,22 @@ public class Checker
 		}
 		else
 		{
-			if (!playerWhite.getPieceArrayList().isEmpty())
+			
+			if (computerPlayer)
+			{	
 				label.setText("Current Player: WHITE  ");
-			else
+				playerWhite.performNextAction();
+			}
+			else 
+			{
+				if (!playerWhite.getPieceArrayList().isEmpty())
+				{
+					label.setText("Current Player: WHITE  ");
+					playerWhite.checkPlayerPossibleCapture();
+				}
+			}
+			
+			if (playerWhite.getPieceArrayList().isEmpty())
 			{
 				label.setText("Player ORANGE won !!!");
 				startNewGame();

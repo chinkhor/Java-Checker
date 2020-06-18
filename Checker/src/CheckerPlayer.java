@@ -225,6 +225,9 @@ public class CheckerPlayer implements ActionListener {
 			// a task is blinking the piece. Make sure it is set back to visible.
 			piece.setVisible(true);
 			piece.setPreSelect(false);
+			
+			// clear next action
+			piece.setNextAction(0);
 		}
 				
 		// clear preSelectList
@@ -241,7 +244,6 @@ public class CheckerPlayer implements ActionListener {
 		clrPreSelection();
 		setState(STATE_FREE); // reset to free state
 		Checker.turnOver();
-		checkPlayerPossibleCapture();
 	}
 	
 	public void move(CheckerPiece piece, int row, int col)
@@ -449,13 +451,13 @@ public class CheckerPlayer implements ActionListener {
 			{
 				// save the piece with capture possibility to preSelectList
 				preSelectList.add(piece);
-				System.out.println("checkPlayerPossibleMove: piece (" + row + "," + col + ") can capture. ");
+				System.out.println("checkPlayerPossibleCapture: piece (" + row + "," + col + ") can capture. ");
 			}
 			else if (piece.getCrown() && board.canFlyCapture(piece.getColor(), row, col))
 			{
 				// save the crowned king piece with capture possibility to preSelectList
 				preSelectList.add(piece);
-				System.out.println("checkPlayerPossibleMove: king (" + row + "," + col + ") can capture. ");
+				System.out.println("checkPlayerPossibleCapture: king (" + row + "," + col + ") can capture. ");
 			}
 		}
 		
