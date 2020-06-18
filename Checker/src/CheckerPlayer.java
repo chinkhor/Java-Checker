@@ -6,30 +6,30 @@ import java.util.Timer;
 
 public class CheckerPlayer implements ActionListener {
 
-	private Color playerColor;
+	protected Color playerColor;
 	// player array list, store all its pieces
-	private ArrayList<CheckerPiece> pieces; 
+	protected ArrayList<CheckerPiece> pieces; 
 	
 	// player array list, store the pieces that have capture in next action
-	private ArrayList<CheckerPiece> preSelectList;
+	protected ArrayList<CheckerPiece> preSelectList;
 	
 	// number of rows for each player = half of number of tiles per row minus one
-	private final int PLAY_ROWS = CheckerBoard.TILES/2 - 1;
+	protected final int PLAY_ROWS = CheckerBoard.TILES/2 - 1;
 	
-	private int state = 0;
-	private final static int STATE_FREE = 0;
-	private final static int STATE_SELECTED = 1;
-	private final static int STATE_JUMPED = 2;
-	private final static int STATE_FLIED = 3;
+	protected int state = 0;
+	protected final static int STATE_FREE = 0;
+	protected final static int STATE_SELECTED = 1;
+	protected final static int STATE_JUMPED = 2;
+	protected final static int STATE_FLIED = 3;
 	// state = 0: free, possible next action: select
 	// state = 1: selected, possible next action: re-select, move and jump
 	// state = 2: jumped, possible next action: jump again (double jump or more)
 	// state = 3: flied, possible next action: fly again (double fly or more)
 	
-	private Timer timer;
-	private CheckerTimerTask task;
+	protected Timer timer;
+	protected CheckerTimerTask task;
 	
-	private int kingRow;
+	protected int kingRow;
 	
 	public CheckerPlayer(Color color, CheckerBoard board)
 	{

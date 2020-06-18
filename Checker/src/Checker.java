@@ -39,12 +39,11 @@ public class Checker
 		currentPlayer = Color.ORANGE;
 		playerOrange = new CheckerPlayer(currentPlayer, board);
 		opponentPlayer = Color.WHITE;
-		playerWhite = new CheckerPlayer(opponentPlayer, board);
+		playerWhite = new CheckerComputerPlayer(opponentPlayer, board);
 		
 		//frame.setSize(800, 800);
 		frame.pack(); // use the size specified by the components, and pack them.	
 		frame.setVisible(true);
-		
 		
 	}
 
