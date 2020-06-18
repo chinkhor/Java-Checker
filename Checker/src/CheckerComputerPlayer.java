@@ -128,6 +128,34 @@ public class CheckerComputerPlayer extends CheckerPlayer implements Runnable
 		}
 		
 	}
+	
+	public void actionFlyCapture(CheckerPiece piece, int srcRow, int srcCol)
+	{
+		CheckerBoard board = Checker.getBoard();
+		srcActionNotify(piece);
+		
+		int row = srcRow;
+		int col = srcCol;		
+		do
+		{
+			delay(1000);
+			if (board.flyCaptureValid(piece, row, col, 1, 1) || board.flyCaptureValid(piece, row, col, 1, -1) || 
+				board.flyCaptureValid(piece, row, col, -1, 1) || board.flyCaptureValid(piece, row, col, -1, -1))
+			{
+				row = piece.getTgtRow();
+				col = piece.getTgtCol();
+				fly(piece, row, col);
+				
+				System.out.printf("actionFlyCapture: piece (%d,%d) flied to (%d,%d), state = %d\n",srcRow, srcCol, row, col, getState());
+			}
+			else
+				System.out.println("actionFlyCapture: piece (" + row + "," + col + ") has no valid fly capture or further fly capture");
+			
+		} while (getState() == STATE_FLIED);
+		
+	}
+	
+	
 	public void run()
 	{
 		checkPlayerPossibleCapture();
@@ -164,34 +192,7 @@ public class CheckerComputerPlayer extends CheckerPlayer implements Runnable
 					
 				case CheckerPiece.A_FLYCAPTURE:
 				{
-					if (board.flyCaptureValid(piece, row, col, 1, 1))
-					{
-						srcActionNotify(piece);
-						delay(1000);
-						fly(piece, piece.getTgtRow(), piece.getTgtCol());
-					}
-					else if (board.flyCaptureValid(piece, row, col, 1, -1))
-					{
-						srcActionNotify(piece);
-						delay(1000);
-						fly(piece, piece.getTgtRow(), piece.getTgtCol());
-					}
-					else if (board.flyCaptureValid(piece, row, col, -1, 1))
-					{
-						srcActionNotify(piece);
-						delay(1000);
-						fly(piece, piece.getTgtRow(), piece.getTgtCol());
-					}
-					else if (board.flyCaptureValid(piece, row, col, -1, -1))
-					{
-						srcActionNotify(piece);
-						delay(1000);
-						fly(piece, piece.getTgtRow(), piece.getTgtCol());
-					}
-					else
-					{
-						System.out.println("Computer run: piece (" + row + "," + col + ") has no valid fly capture");
-					}
+					actionFlyCapture(piece, row, col);
 					break;
 				}					
 				
