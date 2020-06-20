@@ -65,7 +65,7 @@ public class CheckerPlayer implements ActionListener {
 				board.addPiece(piece, row, col);
 				
 				// add piece to player array list
-				pieces.add(piece);
+				pieces.add(0, piece);
 				
 				// action action listener for button click
 				piece.addActionListener(this);
@@ -75,6 +75,11 @@ public class CheckerPlayer implements ActionListener {
 		
 		// start timer
 		timer = new Timer();
+	}
+	
+	public int getKingRow()
+	{
+		return this.kingRow;
 	}
 	
 	public void showPlayerPieceList()
@@ -234,6 +239,10 @@ public class CheckerPlayer implements ActionListener {
 			
 			// clear next action
 			piece.setNextAction(0);
+			
+			piece.setMoveRisk(-1);
+			piece.setTgtRow(-1);
+			piece.setTgtCol(-1);
 		}
 				
 		// clear preSelectList

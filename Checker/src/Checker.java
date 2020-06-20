@@ -157,8 +157,10 @@ public class Checker
 			if (computerPlayer)
 			{	
 				label.setText("Current Player: WHITE  ");
+				// start thread to run white player
 				Thread t1 =new Thread(playerWhite);  
-				t1.start();  
+				t1.start();
+				//playerWhite.run();
 			}
 			else 
 			{

@@ -43,4 +43,17 @@ public class CheckerTile extends JPanel
 	{
 		return this.col;
 	}
+	
+	public CheckerPiece getPiece()
+	{
+		CheckerPlayer player = Checker.getPlayer(occupied);
+		
+		for (CheckerPiece piece: player.getPieceArrayList())
+		{
+			if (piece.getRow() == row && piece.getCol()==col)
+				return piece;
+		}
+		System.out.println("CheckerTile getPiece couldn't find matching piece");
+		return null;
+	}
 }

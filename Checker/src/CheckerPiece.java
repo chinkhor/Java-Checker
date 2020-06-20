@@ -24,6 +24,7 @@ public class CheckerPiece extends JButton
 	private Image img;	
 	private boolean crowned;
 	private int nextAction = 0;
+	private int moveRisk;
 	public static final int A_MOVE = 1;
 	public static final int A_FLY = 2;
 	public static final int A_JUMP = 3;
@@ -49,6 +50,9 @@ public class CheckerPiece extends JButton
 		this.preSelect = false;
 		this.label = "(" + row + "," + col + ")";
 		this.crowned = false;
+		this.moveRisk = -1;
+		this.tgtRow = -1;
+		this.tgtCol = -1;
 		try 
 		   {
 			   this.img = ImageIO.read(new File("src/crown.png"));
@@ -89,6 +93,16 @@ public class CheckerPiece extends JButton
 	public int getNextAction()
 	{
 		return this.nextAction;
+	}
+	
+	public void setMoveRisk(int risk)
+	{
+		this.moveRisk = risk;
+	}
+	
+	public int getMoveRisk()
+	{
+		return moveRisk;
 	}
 	
 	public int getRow()
