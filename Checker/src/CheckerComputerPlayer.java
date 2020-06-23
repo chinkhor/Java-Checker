@@ -20,34 +20,7 @@ public class CheckerComputerPlayer extends CheckerPlayer implements Runnable
 		}
 	}
 	
-	// override CheckerPlayer's checkPlayerPossibleCapture()
-	public void checkPlayerPossibleCapture()
-	{
-		CheckerBoard board = Checker.getBoard();
-		
-		// check any piece have capture possibility in next action
-		for (CheckerPiece piece : pieces)
-		{
-			int row = piece.getRow();
-			int col = piece.getCol();
-			
-			if (!piece.getCrown() && board.canJumpCapture(piece.getColor(), row, col))
-			{
-				// save the piece with capture possibility to preSelectList
-				preSelectList.add(piece);
-				piece.setNextAction(CheckerPiece.A_JUMP);
-				System.out.println("checkPlayerPossibleCapture: piece (" + row + "," + col + ") can capture. ");
-			}
-			else if (piece.getCrown() && board.canFlyCapture(piece.getColor(), row, col))
-			{
-				// save the crowned king piece with capture possibility to preSelectList
-				preSelectList.add(0, piece);
-				piece.setNextAction(CheckerPiece.A_FLYCAPTURE);
-				System.out.println("checkPlayerPossibleCapture: king (" + row + "," + col + ") can capture. ");
-			}
-		}
-		
-	}
+
 	
 	public void delay(int s)
 	{
@@ -61,74 +34,41 @@ public class CheckerComputerPlayer extends CheckerPlayer implements Runnable
 		}
 	}
 	
-	public void actionJump(CheckerPiece piece, int srcRow, int srcCol)
+	public void actionJump(CheckerPiece piece)
 	{
-		CheckerBoard board = Checker.getBoard();
-		srcActionNotify(piece);
-		
-		int row = srcRow;
-		int col = srcCol;		
+		srcActionNotify(piece);		
 		do
 		{
 			delay(1000);
-			if (board.jumpValid(piece, row, col, 1, 1) || board.jumpValid(piece, row, col, 1, -1))
-			{
-				row = piece.getTgtRow();
-				col = piece.getTgtCol();
-				jump(piece, row, col);
-				
-				System.out.printf("actionJump: piece (%d,%d) jumped to (%d,%d), state = %d\n",srcRow, srcCol, row, col, getState());
-			}
-			else
-				System.out.println("actionJump: piece (" + row + "," + col + ") has no valid jump or further jump");
-			
+			System.out.printf("actionJump: piece (%d,%d) jumped to (%d,%d), state = %d\n",piece.getRow(), piece.getCol(), piece.getTgtRow(), piece.getTgtCol(), getState());
+			jump(piece);			
 		} while (getState() == STATE_JUMPED);
 	
 	}
 	
-	public void actionMove(CheckerPiece piece, int srcRow, int srcCol)
+	public void actionMove(CheckerPiece piece)
 	{
 		srcActionNotify(piece);
-		
 		delay(1000);
-		
-		int row = piece.getTgtRow();
-		int col = piece.getTgtCol();
-		move(piece, row, col);
-		
-		System.out.printf("actionMove: piece (%d,%d) moved to (%d,%d), state = %d\n",srcRow, srcCol, row, col, getState());
-		
+		System.out.printf("actionMove: piece (%d,%d) moved to (%d,%d), state = %d\n", piece.getRow(), piece.getCol(), piece.getTgtRow(), piece.getTgtCol(), getState());
+		move(piece);
 	}
 	
-	public void actionFly(CheckerPiece piece, int srcRow, int srcCol)
+	public void actionFly(CheckerPiece piece)
+	{
+		srcActionNotify(piece);
+		delay(1000);
+		System.out.printf("actionFly: piece (%d,%d) flied to (%d,%d), state = %d\n", piece.getRow(), piece.getCol(), piece.getTgtRow(), piece.getTgtCol(), getState());
+		fly(piece);
+	}
+	
+/*	public void actionFlyCapture(CheckerPiece piece)
 	{
 		CheckerBoard board = Checker.getBoard();
 		srcActionNotify(piece);
 		
-		delay(1000);
-		if (board.moveValid(piece, srcRow, srcCol, 1, 1) || board.moveValid(piece, srcRow, srcCol, 1, -1) || 
-			board.moveValid(piece, srcRow, srcCol, -1, 1) || board.moveValid(piece, srcRow, srcCol, -1, -1))
-		{	
-			int row = piece.getTgtRow();
-			int col = piece.getTgtCol();
-			move(piece, row, col);
-			
-			System.out.printf("actionFly: piece (%d,%d) flied to (%d,%d), state = %d\n",srcRow, srcCol, row, col, getState());
-		}		
-		else
-		{
-			System.out.println("actionFly: piece (" + srcRow + "," + srcCol + ") has no valid fly");
-		}
-		
-	}
-	
-	public void actionFlyCapture(CheckerPiece piece, int srcRow, int srcCol)
-	{
-		CheckerBoard board = Checker.getBoard();
-		srcActionNotify(piece);
-		
-		int row = srcRow;
-		int col = srcCol;		
+		int row = piece.getRow();
+		int col = piece.getCol();		
 		do
 		{
 			delay(1000);
@@ -139,29 +79,55 @@ public class CheckerComputerPlayer extends CheckerPlayer implements Runnable
 				col = piece.getTgtCol();
 				fly(piece, row, col);
 				
-				System.out.printf("actionFlyCapture: piece (%d,%d) flied to (%d,%d), state = %d\n",srcRow, srcCol, row, col, getState());
+				System.out.printf("actionFlyCapture: piece (%d,%d) flied to (%d,%d), state = %d\n",piece.getRow(), piece.getCol(), row, col, getState());
 			}
 			else
-				System.out.println("actionFlyCapture: piece (" + row + "," + col + ") has no valid fly capture or further fly capture");
+				System.out.println("actionFlyCapture: piece (" + piece.getRow() + "," + piece.getCol() + ") has no valid fly capture or further fly capture");
 			
 		} while (getState() == STATE_FLIED);
 		
 	}
+*/	
 	
-	public void checkPlayerPossibleMove()
-	{
-		CheckerBoard board = Checker.getBoard();
+	// override CheckerPlayer's checkPlayerPossibleCapture()
+	public void checkPlayerPossibleCapture()
+	{		
+		// check any piece have capture possibility in next action
+		for (CheckerPiece piece : pieces)
+		{
+			int row = piece.getRow();
+			int col = piece.getCol();
 			
+			if (piece.canJump())
+			{
+				// save the piece with capture possibility to preSelectList
+				preSelectList.add(piece);
+				piece.setNextAction(CheckerPiece.A_JUMP);
+				System.out.println("checkPlayerPossibleCapture (computer): piece (" + row + "," + col + ") can capture. ");
+			}
+/*			else if (piece.getCrown() && board.canFlyCapture(piece.getColor(), row, col))
+			{
+				// save the crowned king piece with capture possibility to preSelectList
+				preSelectList.add(0, piece);
+				piece.setNextAction(CheckerPiece.A_FLYCAPTURE);
+				System.out.println("checkPlayerPossibleCapture: king (" + row + "," + col + ") can capture. ");
+			}
+*/		}
+		
+	}
+	
+	// override CheckerPlayer's checkPlayerPossibleMove()
+	public void checkPlayerPossibleMove()
+	{			
 		// check any piece have move possibility in next action
 		for (CheckerPiece piece : pieces)
 		{
 			int row = piece.getRow();
 			int col = piece.getCol();
 				
-			if ((!piece.getCrown() && board.canMove(piece, piece.getColor(), row, col)) || 
-				(piece.getCrown() && board.canFly(piece, piece.getColor(), row, col)))
+			if (piece.canFly() || piece.canMove())
 			{
-				// save the piece with move possibility to preSelectList, sorted with moveRisk value. Lowest value (-1, followed by 0, 1, 2) is at the head
+				// save the piece with move possibility to preSelectList, sorted with moveRisk value. Lowest value (0, followed by 1, 2, 3) is at the head
 				if (preSelectList.isEmpty())
 					preSelectList.add(piece);
 				else
@@ -192,11 +158,11 @@ public class CheckerComputerPlayer extends CheckerPlayer implements Runnable
 				else
 				{
 					piece.setNextAction(CheckerPiece.A_FLY);
-					System.out.println("checkPlayerPossibleMove: king (" + row + "," + col + ") can fly. moveRisk " + piece.getMoveRisk());
+					System.out.printf("checkPlayerPossibleMove: king (%d,%d) can move to tgt (%d,%d). moveRisk %d\n", row, col, piece.getTgtRow(), piece.getTgtCol(),piece.getMoveRisk());
 				}
 			}
 		}
-		
+// defect: no more move, but not surrender		
 		if (preSelectList.isEmpty())
 		{
 			surrender = true;
@@ -223,35 +189,33 @@ public class CheckerComputerPlayer extends CheckerPlayer implements Runnable
 		if (!preSelectList.isEmpty())
 		{
 			CheckerPiece piece = preSelectList.get(0);
-			int row = piece.getRow();
-			int col = piece.getCol();
 			
 			switch (piece.getNextAction())
 			{
 				case CheckerPiece.A_MOVE:
 				{
-					actionMove(piece, row, col);
+					actionMove(piece);
 					break;
 				}
 				case CheckerPiece.A_FLY:
 				{
-					actionFly(piece, row, col);
+					actionFly(piece);
 					break;
 				}
 				case CheckerPiece.A_JUMP:
 				{
-					actionJump(piece, row, col);
+					actionJump(piece);
 					break;
 				}
 					
 				case CheckerPiece.A_FLYCAPTURE:
 				{
-					actionFlyCapture(piece, row, col);
+//					actionFlyCapture(piece);
 					break;
 				}					
 				
 				default:
-					System.out.println("Computer run: piece (" + row + "," + col + ") has no valid next action");
+					System.out.println("Computer run: piece (" + piece.getRow() + "," + piece.getCol() + ") has no valid next action");
 			}
 		}
 		System.out.println("Ended Computer's turn");
