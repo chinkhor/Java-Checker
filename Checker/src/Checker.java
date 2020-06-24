@@ -10,17 +10,52 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
-
+/**
+ * @author      Chin Kooi Khor (chin.kooi.khor@gmail.com)
+ * @version     1.0   
+ * @since       24 Jun 2020  
+ */
 public class Checker
 {
-	private static Color currentPlayer, opponentPlayer;
+	/**
+	 * Color of the current player (WHITE or ORANGE)
+	 */
+	private static Color currentPlayer;
+	/**
+	 * Color of the opponent player (WHITE or ORANGE)
+	 */
+	private static Color opponentPlayer;
+	/**
+	 * Checker board instance
+	 */
 	private static CheckerBoard board;
+	/**
+	 * JLabel for text display
+	 */
 	private static JLabel label;
+	/**
+	 * Checker player instance for orange-color player
+	 */
 	private static CheckerPlayer playerOrange;
+	/**
+	 * Checker player instance for white-color computer player
+	 */
 	private static CheckerComputerPlayer playerWhite;
+	/**
+	 * JFrame for the Checker GUI
+	 */
 	private static JFrame frame;
+	/**
+	 * Computer player flag. If set, the player is computer.
+	 */
 	private static boolean computerPlayer = false;
 	
+	/**
+	 * Constructor of Checker class
+	 * <p>                           
+	 * This constructor will construct Checker GUI frame and setup two players to start the game
+	 *   
+	 */
 	public Checker()
 	{
 		// default frame layout is BorderLayout
@@ -50,9 +85,13 @@ public class Checker
 		
 	}
 
+	/**
+	 * Reset and restart the checker game 
+	 * 
+	 */
 	public static void restartChecker()
 	{	
-		/* alternative method
+		/* alternative method, faster without the need to re-draw the frame
 		frame.remove(board);
 		board = new CheckerBoard();
 		frame.add(board, BorderLayout.CENTER);
@@ -70,6 +109,9 @@ public class Checker
 		new Checker();
 	}
 	
+	/**
+	 * Start new checker game  
+	 */
 	public static void startNewGame()
 	{
 		JPanel panel = new JPanel(new BorderLayout());
@@ -111,16 +153,30 @@ public class Checker
 		frame.repaint();
 	}
 	
+	/**
+	 * Getter to get the current player's color 
+	 * 
+	 * @return Color Return the color of current player 
+	 */
 	public static Color getCurrentPlayer()
 	{
 		return currentPlayer;
 	}
 	
+	/**
+	 * Getter to get the opponent player's color 
+	 * 
+	 * @return Color Return the color of opponent player 
+	 */
 	public static Color getOpponentPlayer()
 	{
 		return opponentPlayer;
 	}
 	
+	/**
+	 * Turn over the game from current player to opponent player. Computer player will be run in thread. End game and declare winner if any player is out of move. 
+	 * 
+	 */
 	public static void turnOver()
 	{
 		Color tmp = currentPlayer;
@@ -192,6 +248,12 @@ public class Checker
 		}
 	}
 	
+	/**
+	 * Getter to get the player instance for a given color
+	 * 
+	 * @param  color Color of the player
+	 * @return CheckerPlayer Return the player instance 
+	 */
 	public static CheckerPlayer getPlayer(Color color)
 	{
 		if (color == Color.ORANGE)
@@ -200,11 +262,21 @@ public class Checker
 			return playerWhite;
 	}
 	
+	/**
+	 * Getter to get the checker board instance 
+	 * 
+	 * @return CheckerBoard Return the board instance for the game 
+	 */
 	public static CheckerBoard getBoard()
 	{
 		return board;
 	}
 	
+	/**
+	 * Main method, entry point of the program to start Checker game 
+	 * 
+	 * @param  args Unused 
+	 */
 	public static void main(String[] args) 
 	{
 		new Checker();

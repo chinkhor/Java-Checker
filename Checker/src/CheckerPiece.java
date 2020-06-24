@@ -10,39 +10,131 @@ import javax.imageio.ImageIO;
 import javax.swing.JButton;
 
 @SuppressWarnings("serial")
+/**
+ * @author      Chin Kooi Khor (chin.kooi.khor@gmail.com)
+ * @version     1.0   
+ * @since       24 Jun 2020  
+ */
 public class CheckerPiece extends JButton
 {
-	public String colorCode; // for tracing and debugging use only
-	private Color color = Color.WHITE;
+	/**
+	 * x-axis location of the piece to be drawn on the tile
+	 */
 	private int pieceX = CheckerTile.TILE_SIZE/4;
+	/**
+	 * y-axis location of the piece to be drawn on the tile
+	 */
 	private int pieceY = CheckerTile.TILE_SIZE/4;
+	/**
+	 * size of the piece to be drawn on the tile
+	 */
 	private int pieceSize = CheckerTile.TILE_SIZE/2;
-	private int row, col;
-	private String label;
+	/**
+	 * Color of the piece (WHITE or ORANGE)
+	 */
+	private Color color = Color.WHITE;
+	/**
+	 * Row number of tile on the board where the piece occupies
+	 */
+	private int row;
+	/**
+	 * Column number of tile on the board where the piece occupies
+	 */
+	private int col;
+	/**
+	 * select flag. This flag will be set when the piece is selected for play action
+	 */
 	private boolean select = false;
+	/**
+	 * preSelect flag. This flag will be set when the piece is pre-selected for next play action (e.g. jump for capture) before player select
+	 */
 	private boolean preSelect = false;
+	/**
+	 * image of the crown, indicating the piece is a king
+	 */
 	private Image img;	
+	/**
+	 * crowned flag. This flag will be set when a piece is promoted to king
+	 */
 	private boolean crowned = false;
 	
-	// computer player attributes or flags
+	/**
+	 * Constant value for initial risk, very high number
+	 */
 	public static final int INITIAL_RISK = 999;
-	private int moveRisk = INITIAL_RISK;
-	private int nextAction = 0;
-	private int tgtRow = -1, tgtCol = -1;
 	
+	/**
+	 * Constant risk value for being king, if a piece reaches king row, there is no risk for being captured, should be prioritized action play
+	 */ 
+	public final static int BE_KING = 0;
+	/**
+	 * Constant risk value for no capture is detected
+	 */
+	public final static int NO_CAPTURE = 1;
+	/**
+	 * Constant risk value for potential capture by opponent piece
+	 */
+	public final static int CAPTURE_BY_PIECE = 2;
+	/**
+	 * Constant risk value for potential capture by opponent king, highest risk for the play action, should be avoid if possible
+	 */
+	public final static int CAPTURE_BY_KING = 3;
+	/**
+	 * risk value for next play action
+	 */	
+	private int risk = INITIAL_RISK;
+	/**
+	 * Row number of the destined or target tile for piece to get to in next play
+	 */
+	private int tgtRow = -1;
+	/**
+	 * Column number of the destined or target tile for piece to get to in next play
+	 */
+	private int tgtCol = -1;
+	
+	/**
+	 * next play action
+	 */
+	private int nextAction = 0;
+	/**
+	 * Constant value for move as next play action
+	 */
 	public static final int A_MOVE = 1;
+	/**
+	 * Constant value for fly as next play action
+	 */
 	public static final int A_FLY = 2;
+	/**
+	 * Constant value for jump as next play action
+	 */
 	public static final int A_JUMP = 3;
+	/**
+	 * Constant value for fly and capture as next play action
+	 */
 	public static final int A_FLYCAPTURE = 4;
-	public static final int A_DOUBLE_JUMP = 5;
-	public static final int A_DOUBLE_FLYCAPTURE = 6;
+
 	// nextAction = 1: move
 	// nextAction = 2: fly
 	// nextAction = 3: jump
 	// nextAction = 4: fly capture
-	// nextAction = 5: double/continuous jump
-	// nextAction = 6: double/continuous fly capture
+	/**
+	 * String label for the piece, it is (row#, col#) in text 
+	 */
+	private String label;
+	/**
+	 * Color for the piece in String format, mainly use for tracing and debugging only 
+	 */
+	public String colorCode; 
 	
+	/**
+	 * Constructor of CheckerPiece class
+	 * <p>                           
+	 * This constructor will construct a JButton piece. It will also load the crown image.
+	 * 
+	 * @param  row Row number of the tile where the piece will be located
+	 * @param  col Column number of the tile where the piece will be located
+	 * @param  color Color of the piece
+	 */
 	public CheckerPiece(int row, int col, Color color)
 	{
 		super();
@@ -66,6 +158,13 @@ public class CheckerPiece extends JButton
 			colorCode = "WHITE: ";
 	}
 	
+	/**
+	 * Paint the piece in round shape in the middle of the tile 
+	 * <p>
+	 * If the piece is a king, a crown image will be painted on the piece. If the piece is selected, a blue round bold boarder will be drawn.
+	 * 
+	 * @param  g Instance of Graphics for painting
+	 */
 	public void paintComponent(Graphics g)
 	{
 		Graphics2D g2 = (Graphics2D) g;
@@ -88,120 +187,230 @@ public class CheckerPiece extends JButton
 		g2.drawOval(pieceX, pieceY, pieceSize, pieceSize);  
 	}
 
-	
+	/**
+	 * Setter to set next action for the piece
+	 * 
+	 * @param  action Next action to be set  
+	 */
 	public void setNextAction(int action)
 	{
 		this.nextAction = action;
 	}
 	
+	/**
+	 * Getter to get next action for the piece
+	 * 
+	 * @return int Return next action for the piece   
+	 */
 	public int getNextAction()
 	{
 		return this.nextAction;
 	}
 	
-	public void setMoveRisk(int risk)
+	/**
+	 * Setter to set risk for the piece on next action
+	 * 
+	 * @param  risk Risk value for next action 
+	 */
+	public void setRisk(int risk)
 	{
-		this.moveRisk = risk;
+		this.risk = risk;
 	}
 	
-	public int getMoveRisk()
+	/**
+	 * Getter to get the risk for piece on next action
+	 * 
+	 * @return int Return risk value for next action   
+	 */
+	public int getRisk()
 	{
-		return moveRisk;
+		return risk;
 	}
 	
+	/**
+	 * Getter to get row number of the tile where the piece is located
+	 * 
+	 * @return int Return row number of the tile where the piece is located   
+	 */
 	public int getRow()
 	{
 		return this.row;
 	}
 	
+	/**
+	 * Getter to get column number of the tile where the piece is located
+	 * 
+	 * @return int Return column number of the tile where the piece is located   
+	 */
 	public int getCol()
 	{
 		return this.col;
 	}
 	
+	/**
+	 * Setter to set row number of the tile where the piece is located
+	 * 
+	 * @param  row Row number of the tile where the piece is located 
+	 */
 	public void setRow(int row)
 	{
 		this.row = row;
 	}
 	
+	/**
+	 * Setter to set column number of the tile where the piece is located
+	 * 
+	 * @param  col Column number of the tile where the piece is located
+	 */
 	public void setCol(int col)
 	{
 		this.col = col;
 	}
 	
+	/**
+	 * Getter to get row number of the destined tile for the piece
+	 * 
+	 * @return int Return row number of the destined tile for the piece   
+	 */
 	public int getTgtRow()
 	{
 		return this.tgtRow;
 	}
 	
+	/**
+	 * Getter to get column number of the destined tile for the piece
+	 * 
+	 * @return int Return column number of the destined tile for the piece   
+	 */
 	public int getTgtCol()
 	{
 		return this.tgtCol;
 	}
 	
+	/**
+	 * Setter to set row number of the tile where the piece is destined in next action
+	 * 
+	 * @param  row Row number of the tile where the piece is destined in next action  
+	 */
 	public void setTgtRow(int row)
 	{
 		this.tgtRow = row;
 	}
 	
+	/**
+	 * Setter to set column number of the tile where the piece is destined in next action
+	 * 
+	 * @param  col Column number of the tile where the piece is destined in next action 
+	 */
 	public void setTgtCol(int col)
 	{
 		this.tgtCol = col;
 	}
 	
+	/**
+	 * Getter to get color for the piece
+	 * 
+	 * @return Color Return color of the piece   
+	 */
 	public Color getColor()
 	{
 		return this.color;
 	}
 	
+	/**
+	 * Setter to set label of the piece
+	 * 
+	 * @param  str String label for the piece 
+	 */
 	public void setLabel(String str)
 	{
 		this.label = str;
 	}
 	
+	/**
+	 * Getter to get label for the piece
+	 * 
+	 * @return String Return string label    
+	 */
 	public String getLabel()
 	{
 		return this.label;
 	}
 	
+	/**
+	 * Check if select flag for the piece is set
+	 * 
+	 * @return boolean Return select flag value   
+	 */
 	public boolean isSelect()
 	{
 		return select;
 	}
 	
+	/**
+	 * Getter to get preSelect flag for the piece
+	 * 
+	 * @return boolean Return the preSelect flag   
+	 */
 	public boolean getPreSelect()
 	{
 		return preSelect;
 	}
 	
+	/**
+	 * Setter to set preSelect flag
+	 * 
+	 * @param  s preSelect flag value 
+	 */
 	public void setPreSelect(boolean s)
 	{
 		this.preSelect = s;
 	}
 
+	/**
+	 * Setter to set select flag
+	 * 
+	 * @param  s select flag value  
+	 */
 	public void select(boolean s)
 	{
 		this.select = s;
 		repaint();
 	}
 	
+	/**
+	 * Setter to set crown for piece
+	 *   
+	 */
 	public void setCrown()
 	{
 		this.crowned = true;
 		repaint();
 	}
 	
+	/**
+	 * Getter to get crown status for piece
+	 * 
+	 * @return boolean Return the crown status of the piece  
+	 */
 	public boolean getCrown()
 	{
 		return this.crowned;
 	}
 	
-	
-	// this method will not find the best or optimal jump yet, it will make the first possible jump
+	/**
+	 * Check if the piece can jump in any direction
+	 * 
+	 * @return boolean Return true if there is valid jump for the piece  
+	 */
 	public boolean canJump()
 	{
 		boolean status1, status2, status3, status4;
-
+		
+		setRisk(INITIAL_RISK); // initialize risk to high number 
+		setTgtRow(-1);
+		setTgtCol(-1);
+		
 		// random generate row and col direction 
 		int randRow = ((int) Math.random())%2;
 		if (randRow == 0)
@@ -209,45 +418,34 @@ public class CheckerPiece extends JButton
 		int randCol = ((int) Math.random())%2 ;
 		if (randCol == 0)
 			randCol = -1;
-				
-		status1 = canJump(this.row+2*randRow,this.col+2*randCol);
-		if (status1)
-		{	
-			setTgtRow(this.row+2*randRow);
-			setTgtCol(this.col+2*randCol);
-			return true;
-		}
+			
+		int row = this.row+2*randRow;
+		int col = this.col+2*randCol;
+		status1 = canJump(row, col, true);
 		
-		status2 = canJump(this.row+2*randRow,this.col-2*randCol);
-		if (status2)
-		{	
-			setTgtRow(this.row+2*randRow);
-			setTgtCol(this.col-2*randCol);
-			return true;
-		}
+		row = this.row+randRow*(-2);
+		status2 = canJump(row, col, true);
 		
-		status3 = canJump(this.row-2*randRow,this.col+2*randCol);
-		if (status3)
-		{	
-			setTgtRow(this.row-2*randRow);
-			setTgtCol(this.col+2*randCol);
-			return true;
-		}	
+		col = this.col+randCol*(-2);
+		status3 = canJump(row, col, true);
 		
-		status4 = canJump(this.row-2*randRow,this.col-2*randCol);
-		if (status4)
-		{	
-			setTgtRow(this.row-2*randRow);
-			setTgtCol(this.col-2*randCol);
-			return true;
-		}	
+		row = this.row+2*randRow;
+		status4 = canJump(row, col, true);
 		
-		return false;
-
+		System.out.printf(colorCode + "canJump: piece %s, jump status %s, best jump (%d,%d), risk %s\n", label, status1 || status2 || status3 || status4, tgtRow, tgtCol, risk);
 		
+		return (status1 || status2 || status3 || status4);	
 	}
 	
-	public boolean canJump(int row, int col)
+	/**
+	 * Check if the piece can jump to a destination and capture an opponent. Risk of the jump can be computed if needed.
+	 * 
+	 * @param row The row number of the destined tile where the piece is jumped to
+	 * @param col The column number of the destined tile where the piece is jumped to
+	 * @param computeRisk Compute the risk of the jump if this flag is set 
+	 * @return boolean Return true if there is valid jump for the piece
+	 */
+	public boolean canJump(int row, int col, boolean computeRisk)
 	{
 		CheckerBoard board = Checker.getBoard();
 		int srcRow = this.row;
@@ -273,6 +471,16 @@ public class CheckerPiece extends JButton
 		// check if the jump-to tile is free
 		if (board.isTileFree(row,  col) && board.isTileOccupiedByPlayer(midRow, midCol, Checker.getOpponentPlayer())) 
 		{
+			if (computeRisk)
+			{
+				int risk = board.computeActionRisk(this, row, col);
+				if (risk < getRisk())
+				{
+					setRisk(risk);
+					setTgtRow(row);
+					setTgtCol(col);
+				}
+			}
 			System.out.printf(colorCode + "canJump(): piece %s can jump to (%d,%d) and capture (%d,%d)\n", label, row,col,midRow,midCol);
 			return true;
 		}
@@ -281,15 +489,19 @@ public class CheckerPiece extends JButton
 
 	}
 	
+	/**
+	 * Check if the king can fly and capture an opponent in any direction
+	 * 
+	 * @return boolean Return true if there is valid fly and capture for the king
+	 */
 	public boolean canFlyCapture()
 	{
-		int risk = INITIAL_RISK; // initialize risk to high number 
 		boolean status1, status2, status3, status4;
 		
 		if (!crowned)
 			return false;
 		
-		setMoveRisk(risk);
+		setRisk(INITIAL_RISK); // initialize risk to high number 
 		setTgtRow(-1);
 		setTgtCol(-1);
 			
@@ -309,6 +521,14 @@ public class CheckerPiece extends JButton
 		return (status1 || status2 || status3 || status4);		
 	}
 		
+	/**
+	 * Check if the king can fly to a destination and capture any opponent. The risk of the fly capture will be computed.
+	 * 
+	 * @param piece Piece instance
+	 * @param rowDir The row direction of the flycapture
+	 * @param colDir The Column direction of the flycapture
+	 * @return boolean Return true if there is valid flycapture for the king
+	 */
 	public boolean canFlyCapture(CheckerPiece piece, int rowDir, int colDir)
 	{
 		CheckerBoard board = Checker.getBoard();
@@ -341,22 +561,16 @@ public class CheckerPiece extends JButton
 		row = row+rowDir;
 		col = col+colDir;
 		int count = 0;
-		int risk = INITIAL_RISK;
-
+		int risk;
+		
 		while (board.isTileFree(row,  col))
 		{
 			count++;
 			
-			risk = board.computeFlyRiskToBeCaptured(piece, row, col, rowDir, colDir);
-			if (piece.getMoveRisk() == INITIAL_RISK)
+			risk = board.computeActionRisk(piece, row, col);
+			if (risk < piece.getRisk()) 
 			{
-				piece.setMoveRisk(risk);
-				piece.setTgtRow(row);
-				piece.setTgtCol(col);
-			}
-			else if (risk < piece.getMoveRisk()) 
-			{
-				piece.setMoveRisk(risk);
+				piece.setRisk(risk);
 				piece.setTgtRow(row);
 				piece.setTgtCol(col);
 			}
@@ -366,13 +580,20 @@ public class CheckerPiece extends JButton
 		
 		if (count > 0)
 		{
-			System.out.printf(colorCode + "canFlyCapture: piece (%d,%d) best attempt to (%d,%d), moveRisk %d\n", srcRow, srcCol, piece.getTgtRow(), piece.getTgtCol(), piece.getMoveRisk());
+			System.out.printf(colorCode + "canFlyCapture: piece (%d,%d) best attempt to (%d,%d), moveRisk %d\n", srcRow, srcCol, piece.getTgtRow(), piece.getTgtCol(), piece.getRisk());
 			return true;
 		}
 		else
 			return false;
 	}
 	
+	/**
+	 * Check if the king can fly to a destination and capture an opponent.
+	 * 
+	 * @param dstRow The row number of the destined tile where the king is flied to
+	 * @param dstCol The column number of the destined tile where the piece is flied to
+	 * @return boolean Return true if there is valid flycapture for the king
+	 */
 	public boolean canFlyCapture(int dstRow, int dstCol)
 	{
 		CheckerBoard board = Checker.getBoard();
@@ -417,6 +638,11 @@ public class CheckerPiece extends JButton
 			return false;
 	}
 	
+	/**
+	 * Check if the king can fly in any direction
+	 * 
+	 * @return boolean Return true if there is valid fly for the king
+	 */
 	public boolean canFly()
 	{
 		boolean status1, status2, status3, status4;
@@ -424,7 +650,7 @@ public class CheckerPiece extends JButton
 		if (!crowned)
 			return false;
 		
-		setMoveRisk(INITIAL_RISK);// initialize risk to high number 
+		setRisk(INITIAL_RISK);// initialize risk to high number 
 		setTgtRow(-1);
 		setTgtCol(-1);
 		
@@ -444,7 +670,13 @@ public class CheckerPiece extends JButton
 		return (status1 || status2 || status3 || status4);
 	}
 	
-	
+	/**
+	 * Check if the king can fly to a destination 
+	 * 
+	 * @param dstRow The row number of the destined tile where the king is flied to
+	 * @param dstCol The column number of the destined tile where the piece is flied to
+	 * @return boolean Return true if there is valid fly for the king
+	 */
 	public boolean canFly(int dstRow, int dstCol)
 	{
 		CheckerBoard board = Checker.getBoard();
@@ -473,7 +705,15 @@ public class CheckerPiece extends JButton
 		System.out.printf(colorCode + "canFly: piece (%d,%d) can fly to (%d,%d) !!! \n", srcRow, srcCol, row,col);
 		return true;
 	}
-		
+	
+	/**
+	 * Check if the king can fly to a destination and compute the risk of the fly
+	 * 
+	 * @param piece Piece instance
+	 * @param rowDir The row direction of the fly
+	 * @param colDir The Column direction of the fly 
+	 * @return boolean Return true if there is valid fly for the king
+	 */
 	public boolean canFly(CheckerPiece piece, int rowDir, int colDir)
 	{
 		CheckerBoard board = Checker.getBoard();
@@ -488,16 +728,10 @@ public class CheckerPiece extends JButton
 		{
 			if (board.isTileFree(row,  col))
 			{
-				risk = board.computeFlyRiskToBeCaptured(piece, row, col, rowDir, colDir);
-				if (piece.getMoveRisk() == INITIAL_RISK)
+				risk = board.computeActionRisk(piece, row, col);
+				if (risk < piece.getRisk()) 
 				{
-					piece.setMoveRisk(risk);
-					piece.setTgtRow(row);
-					piece.setTgtCol(col);
-				}
-				else if (risk < piece.getMoveRisk()) 
-				{
-					piece.setMoveRisk(risk);
+					piece.setRisk(risk);
 					piece.setTgtRow(row);
 					piece.setTgtCol(col);
 				}
@@ -512,7 +746,7 @@ public class CheckerPiece extends JButton
 		
 		if (fly)
 		{
-			System.out.printf(colorCode + "canFly: piece (%d,%d) best attempt to (%d,%d), moveRisk %d\n", srcRow, srcCol, piece.getTgtRow(), piece.getTgtCol(), piece.getMoveRisk());
+			System.out.printf(colorCode + "canFly: piece (%d,%d) best attempt to (%d,%d), moveRisk %d\n", srcRow, srcCol, piece.getTgtRow(), piece.getTgtCol(), piece.getRisk());
 			return true;	
 		}
 		else
@@ -520,11 +754,16 @@ public class CheckerPiece extends JButton
 		
 	}
 	
+	/**
+	 * Check if the piece can move in any direction
+	 * 
+	 * @return boolean Return true if there is valid move for the piece
+	 */
 	public boolean canMove()
 	{
 		boolean status1, status2, status3, status4;
 		
-		setMoveRisk(INITIAL_RISK); // initialize risk to high number 
+		setRisk(INITIAL_RISK); // initialize risk to high number 
 		setTgtRow(-1);
 		setTgtCol(-1);
 		
@@ -549,11 +788,19 @@ public class CheckerPiece extends JButton
 		row = this.row+randRow;
 		status4 = canMove(row, col, true);
 		
-		System.out.printf(colorCode + "canMove: piece %s, move status %s, best move (%d,%d), risk %s\n", label, status1 || status2 || status3 || status4, tgtRow, tgtCol, moveRisk);
+		System.out.printf(colorCode + "canMove: piece %s, move status %s, best move (%d,%d), risk %s\n", label, status1 || status2 || status3 || status4, tgtRow, tgtCol, risk);
 		return (status1 || status2 || status3 || status4);
 		
 	}
 	
+	/**
+	 * Check if the piece can move to a destination and compute the risk of the move
+	 * 
+	 * @param row The row number of the destined tile where the piece is moved to
+	 * @param col The column number of the destined tile where the piece is moved to
+	 * @param computeRisk Compute the risk of the move if this flag is set 
+	 * @return boolean Return true if there is valid move for the piece
+	 */
 	public boolean canMove(int row, int col, boolean computeRisk)
 	{
 		CheckerBoard board = Checker.getBoard();
@@ -584,10 +831,10 @@ public class CheckerPiece extends JButton
 	
 		if (computeRisk)
 		{
-			int risk = board.computeMoveRisk(this, row, col);
-			if (risk < getMoveRisk())
+			int risk = board.computeActionRisk(this, row, col);
+			if (risk < getRisk())
 			{
-				setMoveRisk(risk);
+				setRisk(risk);
 				setTgtRow(row);
 				setTgtCol(col);
 			}

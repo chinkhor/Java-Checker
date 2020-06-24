@@ -4,34 +4,81 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Timer;
 
+/**
+ * @author      Chin Kooi Khor (chin.kooi.khor@gmail.com)
+ * @version     1.0   
+ * @since       24 Jun 2020  
+ */
 public class CheckerPlayer implements ActionListener {
-	public String colorCode; // for tracing and debugging use only
+	/**
+	 * the row number where the piece can become king when reaching this row
+	 */
+	protected int kingRow;
+	
+	/**
+	 * surrender flag which is set when out of move
+	 */
+	protected boolean surrender = false;
+	/**
+	 * the color of the player (orange or white)
+	 */
 	protected Color playerColor;
-	// player array list, store all its pieces
+	
+	/**
+	 * Arrraylist which stores all pieces of the player
+	 */
 	protected ArrayList<CheckerPiece> pieces; 
 	
-	// player array list, store the pieces that have capture in next action
+	/**
+	 * Arrraylist which stores all pre-selected pieces for next play
+	 */
 	protected ArrayList<CheckerPiece> preSelectList;
 	
-	// number of rows for each player = half of number of tiles per row minus one
+	/**
+	 * constant that set the number of rows for each player to place their pieces before the game starts
+	 */
 	protected final int PLAY_ROWS = CheckerBoard.TILES/2 - 1;
 	
+	/**
+	 * state - the state of the player's current play, possible states are
+	 * <br> STATE_FREE = 0
+	 * <br> STATE_SELECTED =1
+	 * <br> STATE_JUMPED = 2
+	 * <br> STATE_FLIED = 3
+	 */
 	protected int state = 0;
 	protected final static int STATE_FREE = 0;
 	protected final static int STATE_SELECTED = 1;
 	protected final static int STATE_JUMPED = 2;
 	protected final static int STATE_FLIED = 3;
 	// state = 0: free, possible next action: select
-	// state = 1: selected, possible next action: re-select, move and jump
+	// state = 1: selected, possible next action: re-select, move, jump, fly, flyCapture
 	// state = 2: jumped, possible next action: jump again (double jump or more)
-	// state = 3: flied, possible next action: fly again (double fly or more)
+	// state = 3: flied, possible next action: flyCapture again (double fly or more)
 	
+	/**
+	 * Timer instance
+	 */
 	protected Timer timer;
+	
+	/**
+	 * CheckerTimerTask instance inheriting TimerTask
+	 */
 	protected CheckerTimerTask task;
 	
-	protected int kingRow;
-	protected boolean surrender = false;
+	/**
+	 * string that shows Color (WHITE or ORANGE) for tracing and debugging use only
+	 */
+	public String colorCode; 
 	
+	/**
+	 * Constructor of CheckerPlayer class
+	 * <p>                           
+	 * This constructor will create the pieces and place them on the board. All the pieces will be added to ArrayList. A timer is also created.
+	 * 
+	 * @param  color	The color of the pieces	
+	 * @param  board    The CheckerBoard instance where the pieces are placed on  
+	 */
 	public CheckerPlayer(Color color, CheckerBoard board)
 	{
 		int startRow, endRow;
@@ -83,37 +130,71 @@ public class CheckerPlayer implements ActionListener {
 		timer = new Timer();
 	}
 	
+	/**
+	 * Getter to get the row number where pieces becoming king 
+	 * 
+	 * @return int	Return kingRow: the row number where the pieces of this player will become king  
+	 */
 	public int getKingRow()
 	{
 		return this.kingRow;
 	}
 	
+	/**
+	 * Getter to get surrender flag 
+	 * 
+	 * @return boolean	Return surrender flag  
+	 */
 	public boolean getSurrender()
 	{
 		return this.surrender;
 	}
 	
+	/**
+	 * Setter to set state flag 
+	 * 
+	 * @param  state Set the state of the player to this   
+	 */
 	public void setState (int state)
 	{
 		this.state = state;
 	}
 	
+	/**
+	 * Getter to get state flag 
+	 * 
+	 * @return int Return the state of the player  
+	 */
 	public int getState()
 	{
 		return this.state;
 	}
 	
+	/**
+	 * Getter to get ArrayList which stores all pieces of this player 
+	 *  
+	 * @return CheckerPiece Return the ArrayList of the pieces 
+	 */
 	public ArrayList<CheckerPiece> getPieceArrayList()
 	{
 		return pieces;
 	}
 	
+	/**
+	 * Getter to get ArrayList which stores all pieces pre-selected for next play 
+	 *  
+	 * @return CheckerPiece Return the preSelectList ArrayList 
+	 */
 	public ArrayList<CheckerPiece> getPreSelectArrayList()
 	{
 		return preSelectList;
 	}
 	
-	public void showPlayerPieceList()
+	/**
+	 * Displays all the pieces in (row, col) format stored in the ArrayList                            
+	 *
+	 */
+	private void showPlayerPieceList()
 	{
 		System.out.print(colorCode + "Player piece list: ");
 		for (CheckerPiece piece : pieces)
@@ -122,7 +203,14 @@ public class CheckerPlayer implements ActionListener {
 		}
 		System.out.println("");
 	}
-	
+
+	/**
+	 * This method is an action event called when a piece is mouse clicked by the player                            
+	 * <p>
+	 * If the clicked piece is owned by the player, srcActionNotify will be called for further action
+	 * 
+	 * @param  e the piece instance which is the source generating the event can be retrieved via e.getSource ()	      
+	 */
 	public void actionPerformed(ActionEvent e)
 	{
 		CheckerPiece piece = (CheckerPiece) e.getSource();
@@ -155,14 +243,19 @@ public class CheckerPlayer implements ActionListener {
 			}
 		}
 	}
-	
+	/**
+	 * This method is called when a piece is selected to set the "state" of the player to STATE_SELECTED                           
+	 * <p>
+	 * To highlight the piece is selected, the "select" flag of the piece is set. And, the selected piece is moved to the head of the ArrayList for pieces
+	 * 
+	 * @param  piece  CheckerPiece instance for next action        
+	 */
 	public void srcActionNotify(CheckerPiece piece)
 	{
 		// state = 0: free state, possible next action: piece selection
-		// state = 1: a piece is selected, possible next action: re-select, move and jump
-		//			: a king is selected, possible next action: fly
-		// state = 2: a piece is jumped, possible next action: jump again (double jump or more)
-		// state = 3: a king is flied, possible next action: fly again (double fly or more)
+		// state = 1: a piece is selected, possible next action: re-select
+		// state = 2: invalid
+		// state = 3: invalid
 		
 		int state = getState();
 		System.out.printf(colorCode + "srcxActionNotify(): piece %s state %d\n", piece.getLabel(), state);			
@@ -185,8 +278,25 @@ public class CheckerPlayer implements ActionListener {
 		}			
 	}
 	
+	/**
+	 * This method is called to determine the next action of the play                           
+	 * <p>
+	 * This method will check the current state of the player and decide next possible action:
+	 * <br>STATE &emsp; &emsp; &emsp; &emsp; &emsp; &nbsp;POSSIBLE ACTIONS
+	 * <br>STATE_FREE &emsp; &emsp; &emsp; no
+	 * <br>STATE_SELECTED &emsp; move, fly, jump, flycapture
+	 * <br>STATE_JUMPED &emsp; &emsp;jump
+	 * <br>STATE_FLIED &emsp; &emsp; &emsp;flycapture
+	 * 
+	 * @param  tile  CheckerTile instance which specifies the destination where the piece will get to based on the possible action        
+	 */
 	public void dstActionNotify(CheckerTile tile)
 	{
+		// state = 0: free state, possible next action: none
+		// state = 1: a piece is selected, possible next action: move and jump
+		//			: a king is selected, possible next action: fly and flyCapture
+		// state = 2: a piece is jumped, possible next action: jump again (double jump or more)
+		// state = 3: a king is flied, possible next action: fly again (double fly or more)
 		int state = getState();
 		
 		// no piece is selected, no further action can be performed
@@ -211,7 +321,7 @@ public class CheckerPlayer implements ActionListener {
 				piece.setTgtCol(dstCol);
 				flyCapture(piece);
 			}
-			else if (piece.canJump(dstRow,dstCol))
+			else if (piece.canJump(dstRow,dstCol, false))
 			{
 				piece.setTgtRow(dstRow);
 				piece.setTgtCol(dstCol);
@@ -235,7 +345,7 @@ public class CheckerPlayer implements ActionListener {
 		// check for double/continuous jump possibility 
 		else if (state == STATE_JUMPED)
 		{
-			if (piece.canJump(dstRow,dstCol))
+			if (piece.canJump(dstRow,dstCol, false))
 			{
 				piece.setTgtRow(dstRow);
 				piece.setTgtCol(dstCol);
@@ -254,6 +364,12 @@ public class CheckerPlayer implements ActionListener {
 		}
 	}
 	
+	/**
+	 * Clear preSelectList and reset its pieces to initial value                          
+	 * <p>
+	 * This method will also kill the invoked TimerTask 
+	 * 
+	 */
 	public void clrPreSelection()
 	{	
 		
@@ -268,7 +384,7 @@ public class CheckerPlayer implements ActionListener {
 			// clear next action
 			piece.setNextAction(0);
 			
-			piece.setMoveRisk(-1);
+			piece.setRisk(CheckerPiece.INITIAL_RISK);
 			piece.setTgtRow(-1);
 			piece.setTgtCol(-1);
 			System.out.print(piece.getLabel() + " ");
@@ -283,7 +399,12 @@ public class CheckerPlayer implements ActionListener {
 			task.cancel();
 	}
 	
-	
+	/**
+	 * Complete the current play. 
+	 * <p>
+	 * This method will clear state and turns over the play to opponent player                        
+	 * 
+	 */
 	public void actionComplete()
 	{
 		System.out.println(colorCode + "actionComplete for player ");
@@ -292,6 +413,12 @@ public class CheckerPlayer implements ActionListener {
 		Checker.turnOver();
 	}
 	
+	/**
+	 * Move the piece to destined tile on the board                       
+	 * <p>
+	 * If the move hits the king row, the piece will be crowned to become king
+	 * @param  piece The piece for the move        
+	 */
 	public void move(CheckerPiece piece)
 	{
 		int row = piece.getTgtRow();
@@ -315,7 +442,13 @@ public class CheckerPlayer implements ActionListener {
 		actionComplete();
 	}
 
-	public void capture(int row, int col)
+	/**
+	 * Capture the piece at (row,col) by removing it from the board and the opponent player ArrayList for pieces                      
+	 * 
+	 * @param  row The row number on the board where the piece is located 
+	 * @param  col The column number on the board where the piece is located         
+	 */
+	private void capture(int row, int col)
 	{
 		CheckerBoard board = Checker.getBoard();
 		CheckerPlayer player = Checker.getPlayer(Checker.getOpponentPlayer());
@@ -344,7 +477,12 @@ public class CheckerPlayer implements ActionListener {
 			System.out.println(colorCode + "capture: Piece (" + row + "," + col + ") does not exist, cannot capture");
 	}
 	
-
+	/**
+	 * Jump the piece to destined tile on the board and captures the opponent piece in between                      
+	 * <p>
+	 * If the jump is destined to the king row, the piece will be crowned to become king
+	 * @param  piece The piece for the jump        
+	 */
 	public void jump(CheckerPiece piece)
 	{
 		boolean crowning = false;
@@ -389,6 +527,11 @@ public class CheckerPlayer implements ActionListener {
 			actionComplete();
 	}
 	
+	/**
+	 * Fly the piece to destined tile on the board                      
+	 * 
+	 * @param  piece The piece for the fly        
+	 */
 	public void fly(CheckerPiece piece)
 	{
 		int row = piece.getTgtRow();
@@ -410,6 +553,11 @@ public class CheckerPlayer implements ActionListener {
 		actionComplete();
 	}
 	
+	/**
+	 * Fly the piece to destined tile on the board and capture opponent piece along the fly                      
+	 * 
+	 * @param  piece The piece for the fly and capture       
+	 */
 	public void flyCapture(CheckerPiece piece)
 	{
 		int srcRow = piece.getRow();
@@ -455,7 +603,12 @@ public class CheckerPlayer implements ActionListener {
 			actionComplete();
 	}
 
-	
+	/**
+	 * Check all the pieces that have valid move and fly in the play and saves them to preSelectList ArrayList
+	 * <p>
+	 * If no piece has valid move or fly, surrender flag will be set                      
+	 * 
+	 */
 	public void checkPlayerPossibleMove()
 	{			
 		// check any piece have move possibility in next action
@@ -487,6 +640,12 @@ public class CheckerPlayer implements ActionListener {
 			
 	}
 	
+	/**
+	 * Check all the pieces that have valid jump and flyCapture in the play and saves them to preSelectList ArrayList
+	 * <p>
+	 * One of these pieces must be selected for next play. A timer task will be invoked to blinking all these pieces for attention to the player for next selection.                    
+	 * 
+	 */
 	public void checkPlayerPossibleCapture()
 	{
 		CheckerPlayer player = Checker.getPlayer(Checker.getCurrentPlayer());

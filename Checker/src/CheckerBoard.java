@@ -8,14 +8,36 @@ import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 
 @SuppressWarnings("serial")
+/**
+ * @author      Chin Kooi Khor (chin.kooi.khor@gmail.com)
+ * @version     1.0   
+ * @since       24 Jun 2020  
+ */
 public class CheckerBoard extends JPanel implements MouseListener
 {
+	/**
+	 * Constant value for number of tiles at each side of the checker board
+	 */
 	public final static int TILES = 8;
-	// use Color.Black as indicator as the tile is free (unoccupied)
-	private final static Color TILE_FREE = Color.black;
+	
+	/**
+	 * Constant value of color to indicate un-occupied tile
+	 */
+	public final static Color TILE_FREE = Color.black;
 		
+	/**
+	 * Two dimensional arrays for checker tiles
+	 */
 	private CheckerTile tile[][] = new CheckerTile[TILES][TILES];
 	
+	/**
+	 * Constructor of CheckerBoard class
+	 * <p>                           
+	 * This constructor will construct a nxn checker board (n is specified by TILES). The tiles are red and black in alternating order. 
+	 * Black tiles are playing tiles where the pieces can occupy. Each playing tile is added a mouse click listener. When mouse click occurs
+	 * on the playing tiles, an event will be invoked. 
+	 * 
+	 */
 	public CheckerBoard()
 	{
 		super(); 
@@ -49,33 +71,70 @@ public class CheckerBoard extends JPanel implements MouseListener
 		}
 	}
 	
+	/**
+	 * Getter to get two dimensional arrays for tiles 
+	 * 
+	 * @return CheckerTile[][]	Return the two dimensional arrays for tiles  
+	 */
 	public CheckerTile[][] getTileArray()
 	{
 		return tile;
 	}
 	
+	/**
+	 * Add a piece to the tile of the board 
+	 * 
+	 * @param piece Piece to add to the tile
+	 * @param row Row number of tile on the board for addition
+	 * @param col Column number of tile on the board for addition
+	 */
 	public void addPiece(CheckerPiece piece, int row, int col)
 	{		
-		tile[row][col].add(piece, BorderLayout.CENTER);
-		tile[row][col].setOccupied(piece.getColor());
+		tile[row][col].add(piece, BorderLayout.CENTER); // add piece (JButton) to tile (JPanel)
+		tile[row][col].setOccupied(piece.getColor()); // set the tile occupied
+		
+		// repaint after the addition
 		tile[row][col].revalidate();
 		tile[row][col].repaint();
 		piece.repaint();
 	}
 	
+	/**
+	 * Remove a piece from the tile of the board 
+	 * 
+	 * @param piece Piece to remove from the tile
+	 * @param row Row number of tile on the board for removal
+	 * @param col Column number of tile on the board for removal
+	 */
 	public void removePiece(CheckerPiece piece, int row, int col)
 	{		
-		tile[row][col].remove(piece);
-		tile[row][col].setOccupied(TILE_FREE);
+		tile[row][col].remove(piece); // remove piece (JButton) from tile (JPanel)
+		tile[row][col].setOccupied(TILE_FREE); // set the tile un-occupied
+		
+		// repaint after the removal
 		tile[row][col].revalidate();
 		tile[row][col].repaint();
 	}
 	
+	/**
+	 * Check if the given tile specified by row and column is within the boundary of the checker board 
+	 * 
+	 * @param row Row number of tile
+	 * @param col Column number of tile
+	 * @return boolean Return true if within boundary, else return false
+	 */
 	public boolean isTileInBound(int row, int col)
 	{
 		return ((row >= 0 && row < TILES && col >= 0 && col < TILES));
 	}
 
+	/**
+	 * Check if the given tile specified by row and column is un-occupied 
+	 * 
+	 * @param row Row number of tile
+	 * @param col Column number of tile
+	 * @return boolean Return true if un-occupied, else return false
+	 */
 	public boolean isTileFree(int row, int col)
 	{
 		if (isTileInBound(row, col))
@@ -84,7 +143,14 @@ public class CheckerBoard extends JPanel implements MouseListener
 			return false;
 	}
 	
-		
+	/**
+	 * Check if the given tile specified by row and column is occupied by piece with color
+	 * 
+	 * @param row Row number of tile
+	 * @param col Column number of tile
+	 * @param color Color of the piece
+	 * @return boolean Return true if occupied by piece matches the color, else return false
+	 */	
 	public boolean isTileOccupiedByPlayer(int row, int col, Color color)
 	{
 		if (isTileInBound(row, col))
@@ -94,26 +160,39 @@ public class CheckerBoard extends JPanel implements MouseListener
 		
 	}
 	
-	public int computeFlyRiskToBeCaptured(CheckerPiece piece, int dstRow, int dstCol, int rowDir, int colDir)
+	/**
+	 * Compute the risk of being captured by opponent piece if making a given action
+	 * 
+	 * @param piece Instance of the piece for action
+	 * @param dstRow Destined tile row number for the piece after the action
+	 * @param dstCol Destined tile column number for the piece after the action
+	 * @return int Return computed risk (CAPTURE_BY_PIECE or NO_CAPTURE)
+	 */	
+	public int computeRiskToBeCaptured(CheckerPiece piece, int dstRow, int dstCol)
 	{		
-		int capture = 3;
-		int noCapture = 1;
+		int capture = CheckerPiece.CAPTURE_BY_PIECE;
+		int noCapture = CheckerPiece.NO_CAPTURE;
 		
-		int row = dstRow+rowDir;
-		int col = dstCol+colDir;
+		int srcRow = piece.getRow();
+		int srcCol = piece.getCol();
+		int rowDir = (dstRow - srcRow)/Math.abs(dstRow - srcRow);
+		int colDir = (dstCol - srcCol)/Math.abs(dstCol - srcCol);
 		
+		// next tile in direction of rowDir,colDir
+		int row = dstRow + rowDir;
+		int col = dstCol + colDir;
+	
 		if (isTileOccupiedByPlayer(row, col, Checker.getOpponentPlayer()))
 		{
 			CheckerPiece opponent = tile[row][col].getPiece();
-			if (opponent.getCrown() || 
-			   (!opponent.getCrown() && (((opponent.getColor() == Color.ORANGE) && (dstRow < row)) ||
-										 ((opponent.getColor() == Color.WHITE)  && (dstRow > row)))))
+			if (opponent.getCrown() ||  // if king, should not get here, but check anyway
+			   (!opponent.getCrown() && (((opponent.getColor() == Color.ORANGE) && (dstRow < row)) || ((opponent.getColor() == Color.WHITE)  && (dstRow > row)))))
 			{
-				System.out.printf(piece.colorCode + "computeFlyRiskToBeCaptured: piece (%d,%d) fly to (%d,%d) will be captured by opponent(%d,%d)\n", piece.getRow(), piece.getCol(), dstRow,dstCol, row, col);
+				System.out.printf(piece.colorCode + "computeRiskToBeCaptured: piece (%d,%d) gets to (%d,%d) will be captured by opponent(%d,%d)\n", piece.getRow(), piece.getCol(), dstRow,dstCol, row, col);
 				return capture;
 			}
 		}
-	
+		
 		// next tile in opposite direction of rowDir,colDir
 		int row2 = row;
 		int col2 = col + colDir*(-2);
@@ -123,66 +202,40 @@ public class CheckerBoard extends JPanel implements MouseListener
 		if (isTileFree(row3, col3) && isTileOccupiedByPlayer(row2, col2, Checker.getOpponentPlayer()))
 		{
 			CheckerPiece opponent = tile[row2][col2].getPiece();
-			if (opponent.getCrown() || 
-			   (!opponent.getCrown() && (((opponent.getColor() == Color.ORANGE) && (row3 < row2)) ||
-										 ((opponent.getColor() == Color.WHITE)  && (row3 > row2)))))
+			if (opponent.getCrown() || // if king, should not get here, but check anyway
+			   (!opponent.getCrown() && (((opponent.getColor() == Color.ORANGE) && (row3 < row2)) || ((opponent.getColor() == Color.WHITE)  && (row3 > row2)))))
 			{
-				System.out.printf(piece.colorCode + "computeFlyRiskToBeCaptured: piece (%d,%d) fly to (%d,%d) will be captured by opponent(%d,%d)\n", piece.getRow(), piece.getCol(), dstRow,dstCol, row2, col2);
+				System.out.printf(piece.colorCode + "computeRiskToBeCaptured: piece (%d,%d) gets to (%d,%d) will be captured by opponent(%d,%d)\n", piece.getRow(), piece.getCol(), dstRow,dstCol, row2, col2);
 				return capture;
 			}
 		}
-		
+
 		if (isTileFree(row2, col2) && isTileOccupiedByPlayer(row3, col3, Checker.getOpponentPlayer()))
 		{
 			CheckerPiece opponent = tile[row3][col3].getPiece();
-			if (opponent.getCrown() || 
-			   (!opponent.getCrown() && (((opponent.getColor() == Color.ORANGE) && (row2 < row3)) ||
-										 ((opponent.getColor() == Color.WHITE)  && (row2 > row3)))))
+			if (opponent.getCrown() || // if king, should not get here, but check anyway
+			   (!opponent.getCrown() && (((opponent.getColor() == Color.ORANGE) && (row2 < row3)) || ((opponent.getColor() == Color.WHITE)  && (row2 > row3)))))
 			{
-				System.out.printf(piece.colorCode + "computeFlyRiskToBeCaptured: piece (%d,%d) fly to (%d,%d) will be captured by opponent(%d,%d)\n", piece.getRow(), piece.getCol(), dstRow,dstCol, row3, col3);
+				System.out.printf(piece.colorCode + "computeRiskToBeCaptured: piece (%d,%d) gets to (%d,%d) will be captured by opponent(%d,%d)\n", piece.getRow(), piece.getCol(), dstRow,dstCol, row3, col3);
 				return capture;
 			}
 		}
 		
-		System.out.printf(piece.colorCode + "computeFlyRiskToBeCaptured: piece (%d,%d) fly to (%d,%d), direction (%d,%d): no capture\n", piece.getRow(), piece.getCol(), dstRow,dstCol, rowDir, colDir);
-		
-		// get here mean no being captured risk
-		return noCapture;
-	}
-	
-	public int computeRiskToBeCaptured(CheckerPiece piece, int dstRow, int dstCol)
-	{
-// reminder: need to implement king moveback and can capture by orange piece		
-		int capture = 2;
-		int noCapture = 1;
-		
-		int rowDir = dstRow - piece.getRow();
-		int colDir = dstCol - piece.getCol();
-		
-		// next tile in direction of rowDir,colDir
-		int row = dstRow + rowDir;
-		int col = dstCol + colDir;
-	
-		if (isTileOccupiedByPlayer(row, col, Checker.getOpponentPlayer()))
-		{
-			return capture;
-		}
-	
-		// next tile in opposite direction of rowDir,colDir
-		int row2 = row;
-		int col2 = col + colDir*(-2);
-		int row3 = row + rowDir*(-2);
-		int col3 = col;
-		
-		if (isTileFree(row3, col3) && isTileOccupiedByPlayer(row2, col2, Checker.getOpponentPlayer()))
-		{
-			return capture;
-		}
-		
+		System.out.printf(piece.colorCode + "computeRiskToBeCaptured: piece (%d,%d) gets to (%d,%d), direction (%d,%d): no capture\n", piece.getRow(), piece.getCol(), dstRow,dstCol, rowDir, colDir);	
 		// get here mean no being captured risk
 		return noCapture;
 	}
 
+	/**
+	 * Check if there is opponent king in the given direction that can fly and capture after making the play action
+	 * 
+	 * @param dstRow Destined tile row number for the piece after the action
+	 * @param dstCol Destined tile column number for the piece after the action
+	 * @param rowDir Row direction (+1 is down, -1 is up) 
+	 * @param colDir Column direction (+1 is right, -1 is left)
+	 * @param color Color of the piece
+	 * @return boolean Return true if there is opponent king, else return false
+	 */	
 	public boolean isKingFoundInDirection(int dstRow, int dstCol, int rowDir, int colDir, Color color)
 	{		
 		int row = dstRow + rowDir;
@@ -216,13 +269,23 @@ public class CheckerBoard extends JPanel implements MouseListener
 		return false;
 	}
 	
+	/**
+	 * Compute the risk of being captured by opponent king if making a given action
+	 * 
+	 * @param piece Instance of the piece for action
+	 * @param dstRow Destined tile row number for the piece after the action
+	 * @param dstCol Destined tile column number for the piece after the action
+	 * @return int Return computed risk (CAPTURE_BY_KING or NO_CAPTURE)
+	 */	
 	public int computeRiskToBeFlyCaptured(CheckerPiece piece, int dstRow, int dstCol)
 	{
-		int capture = 3;
-		int noCapture = 1;
+		int capture = CheckerPiece.CAPTURE_BY_KING;
+		int noCapture = CheckerPiece.NO_CAPTURE;
 		
-		int rowDir = dstRow - piece.getRow();
-		int colDir = dstCol - piece.getCol();
+		int srcRow = piece.getRow();
+		int srcCol = piece.getCol();
+		int rowDir = (dstRow - srcRow)/Math.abs(dstRow - srcRow);
+		int colDir = (dstCol - srcCol)/Math.abs(dstCol - srcCol);
 		
 		// note: after the move, the piece location will be free, no need to check for tile free at piece location
 		if (isKingFoundInDirection(dstRow, dstCol, rowDir, colDir, piece.getColor()))
@@ -256,27 +319,40 @@ public class CheckerBoard extends JPanel implements MouseListener
 		return noCapture;
 	}
 
-	public int computeMoveRisk(CheckerPiece piece, int row, int col)
+	/**
+	 * Compute the risk of play action. 
+	 * 
+	 * @param piece Instance of the piece for action
+	 * @param dstRow Destined tile row number for the piece after the action
+	 * @param dstCol Destined tile column number for the piece after the action
+	 * @return int Return computed risk (CAPTURE_BY_KING, CAPTURE_BY_PIECE, NO_CAPTURE, BE_KING)
+	 */	
+	public int computeActionRisk(CheckerPiece piece, int dstRow, int dstCol)
 	{
-		// if the move to king row, no risk to be captured, and it should be priority move
-		if ((row == Checker.getPlayer(Checker.getCurrentPlayer()).getKingRow()) && !piece.getCrown())
+		// if the move to king row, no risk to be captured, and it should be priority move to become king
+		if (!piece.getCrown() && (dstRow == Checker.getPlayer(Checker.getCurrentPlayer()).getKingRow()))
 		{
-			System.out.printf (piece.colorCode + "computeMoveRisk: piece %s become king if move to (%d,%d), set moveRisk to 0\n", piece.getLabel(), row, col);
-			return 0;
+			System.out.printf (piece.colorCode + "computeActionRisk: piece %s become king if gets to (%d,%d), set risk to 0\n", piece.getLabel(), dstRow, dstCol);
+			return CheckerPiece.BE_KING;
 		}
 		else
 		{
-			int risk = computeRiskToBeFlyCaptured(piece, row, col);
-			if (risk < 3) // no capture by a king
+			int risk = computeRiskToBeFlyCaptured(piece, dstRow, dstCol);
+			if (risk < CheckerPiece.CAPTURE_BY_KING) // no capture by a king
 			{
-				risk = computeRiskToBeCaptured(piece, row, col);
+				risk = computeRiskToBeCaptured(piece, dstRow, dstCol);
 			}
-			System.out.printf (piece.colorCode + "computeMoveRisk: piece %s if move to (%d,%d), moveRisk is %d\n", piece.getLabel(), row, col, risk);
+			System.out.printf (piece.colorCode + "computeActionRisk: piece %s if gets to (%d,%d), risk is %d\n", piece.getLabel(), dstRow, dstCol, risk);
 			return risk;
 		}	
 
 	}
 	
+	/**
+	 * Mouse click event invoked when a tile is being clicked on. 
+	 * 
+	 * @param e MouseEvent which can get the selected tile via getSource method
+	 */	
 	public void mouseClicked(MouseEvent e) 
 	{ 
 		CheckerTile tile = (CheckerTile) e.getSource();

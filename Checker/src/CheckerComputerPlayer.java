@@ -1,8 +1,22 @@
 import java.awt.Color;
 import java.awt.event.ActionListener;
 
+/**
+ * @author      Chin Kooi Khor (chin.kooi.khor@gmail.com)
+ * @version     1.0   
+ * @since       24 Jun 2020  
+ */
 public class CheckerComputerPlayer extends CheckerPlayer implements Runnable 
 {
+	/**
+	 * Constructor of CheckerComputerPlayer class
+	 * <p>                           
+	 * This constructor will call CheckerPlayer constructor to initialize computer player. It disables action listener for all pieces.
+	 * 
+	 * @param  color	The color of the pieces	
+	 * @param  board    The CheckerBoard instance where the pieces are placed on  
+	 * @see CheckerPlayer
+	 */
 	public CheckerComputerPlayer(Color color, CheckerBoard board)
 	{
 		super(color, board);
@@ -19,8 +33,12 @@ public class CheckerComputerPlayer extends CheckerPlayer implements Runnable
 		    }
 		}
 	}
-	
-	public void delay(int s)
+	/**
+	 * Delay for given time                
+	 * 
+	 * @param  s Mili-seconds for delay        
+	 */
+	private void delay(int s)
 	{
 		try
 		{
@@ -31,7 +49,11 @@ public class CheckerComputerPlayer extends CheckerPlayer implements Runnable
 			Thread.currentThread().interrupt();
 		}
 	}
-	
+	/**
+	 * Perform jump action and capture opponent piece                
+	 * 
+	 * @param  piece Selected piece for jump        
+	 */
 	public void actionJump(CheckerPiece piece)
 	{
 		srcActionNotify(piece);		
@@ -44,6 +66,11 @@ public class CheckerComputerPlayer extends CheckerPlayer implements Runnable
 	
 	}
 	
+	/**
+	 * Perform move action                
+	 * 
+	 * @param  piece Selected piece for move        
+	 */
 	public void actionMove(CheckerPiece piece)
 	{
 		srcActionNotify(piece);
@@ -52,26 +79,41 @@ public class CheckerComputerPlayer extends CheckerPlayer implements Runnable
 		move(piece);
 	}
 	
-	public void actionFly(CheckerPiece piece)
+	/**
+	 * Perform fly action                
+	 * 
+	 * @param  king Selected king for fly        
+	 */
+	public void actionFly(CheckerPiece king)
 	{
-		srcActionNotify(piece);
+		srcActionNotify(king);
 		delay(1000);
-		System.out.printf("%s actionFly: piece (%d,%d) flied to (%d,%d), state = %d\n", piece.colorCode, piece.getRow(), piece.getCol(), piece.getTgtRow(), piece.getTgtCol(), getState());
-		fly(piece);
+		System.out.printf("%s actionFly: piece (%d,%d) flied to (%d,%d), state = %d\n", king.colorCode, king.getRow(), king.getCol(), king.getTgtRow(), king.getTgtCol(), getState());
+		fly(king);
 	}
 	
-	public void actionFlyCapture(CheckerPiece piece)
+	/**
+	 * Perform fly and capture opponent piece               
+	 * 
+	 * @param  king Selected king for fly capture        
+	 */
+	public void actionFlyCapture(CheckerPiece king)
 	{
-		srcActionNotify(piece);		
+		srcActionNotify(king);		
 		do
 		{
 			delay(1000);
-			System.out.printf("%s actionFlyCapture: piece (%d,%d) flied to (%d,%d), state = %d\n",piece.colorCode, piece.getRow(), piece.getCol(), piece.getTgtRow(), piece.getTgtCol(), getState());
-			flyCapture(piece);			
+			System.out.printf("%s actionFlyCapture: piece (%d,%d) flied to (%d,%d), state = %d\n",king.colorCode, king.getRow(), king.getCol(), king.getTgtRow(), king.getTgtCol(), getState());
+			flyCapture(king);			
 		} while (getState() == STATE_FLIED);
 	}
 	
-	// override CheckerPlayer's checkPlayerPossibleCapture()
+	/**
+	 * Check all the pieces that have valid jump and flyCapture in the play and saves them to preSelectList ArrayList
+	 * <p>
+	 * One of these pieces must be selected for next play.                     
+	 * 
+	 */
 	public void checkPlayerPossibleCapture()
 	{		
 		// check any piece have capture possibility in next action
@@ -98,7 +140,12 @@ public class CheckerComputerPlayer extends CheckerPlayer implements Runnable
 		
 	}
 	
-	// override CheckerPlayer's checkPlayerPossibleMove()
+	/**
+	 * Check all the pieces that have valid move and fly in the play and saves them to preSelectList ArrayList
+	 * <p>
+	 * If no piece has valid move or fly, surrender flag will be set.                       
+	 * 
+	 */
 	public void checkPlayerPossibleMove()
 	{			
 		// check any piece have move possibility in next action
@@ -120,7 +167,7 @@ public class CheckerComputerPlayer extends CheckerPlayer implements Runnable
 					while (index < preSelectList.size())
 					{
 						p = preSelectList.get(index);
-						if (piece.getMoveRisk() <= p.getMoveRisk())
+						if (piece.getRisk() <= p.getRisk())
 						{
 							preSelectList.add(index, piece);
 							addToList = true;
@@ -135,12 +182,12 @@ public class CheckerComputerPlayer extends CheckerPlayer implements Runnable
 				if (!piece.getCrown())
 				{
 					piece.setNextAction(CheckerPiece.A_MOVE);
-					System.out.printf("%s checkPlayerPossibleMove: piece (%d,%d) can move to tgt (%d,%d). moveRisk %d\n", colorCode, row, col, piece.getTgtRow(), piece.getTgtCol(),piece.getMoveRisk());
+					System.out.printf("%s checkPlayerPossibleMove: piece (%d,%d) can move to tgt (%d,%d). moveRisk %d\n", colorCode, row, col, piece.getTgtRow(), piece.getTgtCol(),piece.getRisk());
 				}
 				else
 				{
 					piece.setNextAction(CheckerPiece.A_FLY);
-					System.out.printf("%s checkPlayerPossibleMove: king (%d,%d) can move to tgt (%d,%d). moveRisk %d\n", colorCode, row, col, piece.getTgtRow(), piece.getTgtCol(),piece.getMoveRisk());
+					System.out.printf("%s checkPlayerPossibleMove: king (%d,%d) can move to tgt (%d,%d). moveRisk %d\n", colorCode, row, col, piece.getTgtRow(), piece.getTgtCol(),piece.getRisk());
 				}
 			}
 		}
@@ -153,6 +200,12 @@ public class CheckerComputerPlayer extends CheckerPlayer implements Runnable
 			
 	}
 	
+	/**
+	 * This method will run to check all possible actions (jump, flycapture, move and fly) and decide the optimal action for next play                      
+	 * <p>
+	 * Implement Runnable interface to run in a thread. 
+	 * 
+	 */
 	public void run()
 	{
 		System.out.println(colorCode + "run(): ");

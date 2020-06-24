@@ -2,9 +2,17 @@
 import java.util.ArrayList;
 import java.util.TimerTask;
 
+/**
+ * @author      Chin Kooi Khor (chin.kooi.khor@gmail.com)
+ * @version     1.0   
+ * @since       24 Jun 2020  
+ */
 public class CheckerTimerTask extends TimerTask
 {
-	// this timer task will run to blink the pieces in the preSelectList
+	
+	/**
+	 * This method will blink all the pieces stored in preSelectList for player's attention 
+	 */
 	public void run()
 	{
 		CheckerPlayer player = Checker.getPlayer(Checker.getCurrentPlayer());
